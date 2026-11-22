@@ -1,61 +1,81 @@
-<!doctype html>
-<html lang="en" data-resolution="portrait">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=1080, height=1920" />
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
-    <style>
-      /* Placeholders: replace all three with the film's own palette and display face. */
-      :root {
-        --ground: #000;
-        --ink: #ffffff;
-        --font-display: sans-serif;
-      }
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      html,
-      body {
-        margin: 0;
-        width: 1080px;
-        height: 1920px;
-        overflow: hidden;
-        background: var(--ground);
-      }
-      #root {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: var(--font-display);
-      }
-      #title {
-        color: var(--ink);
-        font-size: 72px;
-        font-weight: 600;
-        letter-spacing: -0.03em;
-      }
-    </style>
-  </head>
-  <body>
-    <div
-      id="root"
-      data-composition-id="main"
-      data-start="0"
-      data-duration="10"
-      data-width="1080"
-      data-height="1920"
-    >
-      <h1 id="title" class="clip" data-start="0" data-duration="10" data-track-index="0">Title</h1>
-    </div>
-    <script>
-      const tl = gsap.timeline({ paused: true });
-      // Example: tl.fromTo("#title", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.18, ease: "power4.out" }, 0);
-      window.__timelines["main"] = tl;
-      tl.seek(0);
-    </script>
-  </body>
+<!DOCTYPE html>
+<html lang="ms" data-resolution="portrait">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080, height=1920" />
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+<style>
+:root { --navy: #08101e; --paper: #f1f4ff; --muted: #a0aaca; --cyan:#66e0ff; --violet:#9578fa; --lime:#cbffab; }
+*{box-sizing:border-box}
+html,body{height:1920px;width:1080px;margin:0;padding:0;overflow:hidden;color:var(--paper);font-family:Arial,Helvetica,sans-serif;background:var(--navy)}
+#root{height:1920px;width:1080px;overflow:hidden;position:relative;background:radial-gradient(circle at 65% 33%,#25204b 0%,#0d1831 33%,#08101e 75%)}
+.grid{position:absolute;inset:0;background-image:linear-gradient(#a7b8ff0d 2px,transparent 2px),linear-gradient(90deg,#a7b8ff0d 2px,transparent 2px);background-size:78px 78px;mask-image:linear-gradient(180deg,transparent,#000 18%,#000 75%,transparent);opacity:.8}
+.blob{position:absolute;border-radius:50%;filter:blur(110px);opacity:.22;pointer-events:none}
+.b1{left:-180px;top:600px;width:520px;height:520px;background:#6d6bff}
+.b2{right:-160px;bottom:370px;width:480px;height:480px;background:#28bcff}
+.kicker{position:absolute;left:88px;top:165px;font-size:25px;letter-spacing:6px;font-weight:700;color:#b1bbda;display:flex;align-items:center;gap:18px}
+.kicker-dot{width:14px;height:14px;background:var(--cyan);border-radius:50%;box-shadow:0 0 24px var(--cyan)}
+.rule{position:absolute;top:257px;left:88px;width:900px;height:2px;background:linear-gradient(to right,#a9b4ec8c,transparent)}
+.heading{position:absolute;top:355px;left:88px;right:65px;line-height:1.01;letter-spacing:-6px;font-size:119px;font-weight:900}
+.heading .small{font-size:62px;letter-spacing:-1px;font-weight:600;color:#a5b1d0;display:block;margin-bottom:22px}
+.heading .highlight{color:var(--cyan);text-shadow:0 0 50px #49c9ff50}
+.card{position:absolute;left:88px;top:745px;width:904px;height:640px;border-radius:44px;background:linear-gradient(145deg,#222943ea,#0c1630e8);border:2px solid #64749c70;box-shadow:0 40px 100px #0008, inset 0 2px 1px #ffffff16;overflow:hidden}
+.chart-label{position:absolute;left:49px;top:49px;color:#cad6fa;font-size:27px;font-weight:700;letter-spacing:3px}
+.pill{position:absolute;right:43px;top:43px;color:var(--lime);font-size:22px;border-radius:99px;border:1px solid #cbffab67;background:#ccffab15;padding:15px 24px}
+.chart-grid{position:absolute;left:42px;top:150px;width:815px;height:340px;background:repeating-linear-gradient(to right,transparent 0 136px,#c8d4ff18 137px 138px),repeating-linear-gradient(to bottom,transparent 0 83px,#c8d4ff13 84px 85px)}
+.chart-svg{position:absolute;left:45px;top:151px;width:812px;height:333px;overflow:visible}
+#shadowcurve{fill:none;stroke:#5cd5ff;stroke-width:31;filter:blur(32px);opacity:.5}
+#curve{fill:none;stroke:url(#stroke);stroke-width:13;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1450;stroke-dashoffset:1450}
+#peakDot{fill:#e2fffc;stroke:#73ddff;stroke-width:12;filter:drop-shadow(0px 0px 12px #57e1ff)}
+#dropDot{fill:#b4a3ff;stroke:#8d75f4;stroke-width:12;filter:drop-shadow(0px 0px 12px #8379ff)}
+.axis{position:absolute;bottom:93px;left:45px;right:40px;display:flex;justify-content:space-between;font-size:25px;font-weight:700;color:#a6b4d7}
+.axis strong{color:#e5f8ff}
+.meaning{position:absolute;left:88px;top:1460px;width:900px;font-size:37px;line-height:1.34;color:#d7e3ff;font-weight:500}
+.meaning b{font-weight:900;color:var(--lime)}
+.footer{position:absolute;bottom:135px;left:88px;right:88px;display:flex;align-items:center;justify-content:space-between}
+.footer span{color:#8590b7;font-size:23px;letter-spacing:3px}
+.footer strong{font-size:25px;color:#c6ceea;font-weight:600}
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="3.2" data-width="1080" data-height="1920">
+  <div class="grid clip" data-start="0" data-duration="3.2" data-track-index="0"></div>
+  <div class="blob b1 clip" data-start="0" data-duration="3.2"></div>
+  <div class="blob b2 clip" data-start="0" data-duration="3.2"></div>
+  <div class="kicker clip" data-start="0" data-duration="3.2" id="kicker"><span class="kicker-dot"></span>VISUAL STORY / 01</div>
+  <div class="rule clip" data-start="0" data-duration="3.2"></div>
+  <div class="heading clip" data-start="0" data-duration="3.2" id="heading">
+    <span class="small">BILA KITA MEMBELI...</span>
+    RASA <span class="highlight">SERONOK</span><br/>SEKEJAP.
+  </div>
+  <div class="card clip" data-start="0" data-duration="3.2" id="card">
+    <div class="chart-label">ILUSTRASI KEPUASAN</div>
+    <div class="pill" id="tag">NAIK → TURUN</div>
+    <div class="chart-grid"></div>
+    <svg class="chart-svg" viewBox="0 0 820 335" aria-label="Ilustrasi rasa seronok naik kemudian turun">
+      <defs><linearGradient id="stroke" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#80edff"/><stop offset="48%" stop-color="#66e0ff"/><stop offset="100%" stop-color="#a68aff"/></linearGradient></defs>
+      <path id="shadowcurve" d="M 23,280 C 122,281 155,245 228,160 C 280,96 327,53 370,42 C 420,33 445,111 503,166 C 567,227 651,263 784,278"/>
+      <path id="curve" d="M 23,280 C 122,281 155,245 228,160 C 280,96 327,53 370,42 C 420,33 445,111 503,166 C 567,227 651,263 784,278"/>
+      <circle id="peakDot" cx="370" cy="42" r="13" opacity="0"/>
+      <circle id="dropDot" cx="784" cy="278" r="12" opacity="0"/>
+    </svg>
+    <div class="axis"><strong>BELI</strong><span>SERONOK</span><strong>NAK LAGI?</strong></div>
+  </div>
+  <div class="meaning clip" data-start="0" data-duration="3.2" id="meaning">Barang boleh beri rasa puas.<br/><b>Tapi rasa tu mungkin tak lama.</b></div>
+  <div class="footer clip" data-start="0" data-duration="3.2"><span>PRIVATE EDITORIAL DEMO</span><strong>KAUTHAR REMIX</strong></div>
+</div>
+<script>
+window.__timelines=window.__timelines||{};
+const tl=gsap.timeline({paused:true});
+tl.fromTo("#kicker",{opacity:0,y:-25},{opacity:1,y:0,duration:.35,ease:"power3.out"},0);
+tl.fromTo("#heading",{opacity:0,y:75,filter:"blur(14px)"},{opacity:1,y:0,filter:"blur(0px)",duration:.63,ease:"power3.out"},.18);
+tl.fromTo("#card",{opacity:0,scale:.88,y:85},{opacity:1,scale:1,y:0,duration:.65,ease:"power3.out"},.43);
+tl.fromTo("#curve",{strokeDashoffset:1450},{strokeDashoffset:0,duration:1.55,ease:"power2.inOut"},.88);
+tl.fromTo("#peakDot",{opacity:0,scale:.3,transformOrigin:"370px 42px"},{opacity:1,scale:1.25,duration:.22,ease:"back.out(2)"},1.56);
+tl.fromTo("#dropDot",{opacity:0,scale:.3,transformOrigin:"784px 278px"},{opacity:1,scale:1,duration:.28,ease:"back.out(2)"},2.31);
+tl.fromTo("#meaning",{opacity:0,y:40},{opacity:1,y:0,duration:.4,ease:"power2.out"},1.78);
+tl.fromTo("#tag",{opacity:.1,scale:.7},{opacity:1,scale:1,duration:.3,ease:"back.out(1.7)"},1.5);
+window.__timelines.main=tl;tl.seek(0);
+</script>
+</body>
 </html>
