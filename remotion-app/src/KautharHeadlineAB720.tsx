@@ -139,7 +139,7 @@ const KautharPilot: React.FC<{variant: HeadlineVariant}> = ({variant}) => (
         <BrollInsert item={item}/>
       </Sequence>
     ))}
-    <Sequence from={0} durationInFrames={Math.round(8.55 * FPS)}>
+    <Sequence durationInFrames={Math.round(8.55 * FPS)}>
       <Headline variant={variant}/>
     </Sequence>
   </AbsoluteFill>
