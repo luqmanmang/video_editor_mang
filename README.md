@@ -9,7 +9,8 @@ ChatGPT-directed video production powered by Remote Desktop Commander -> GitHub 
 - `remotion-app/`: Remotion 4.0.545, npm dependencies installed, lint and composition discovery passed.
 - `motion-assets/demo/`: HyperFrames 0.9.80 scaffold, lint + Chrome runtime validation passed, with expected static-composition warning.
 - `ffmpeg`: available in this running Codespace from Ubuntu package 6.1.1.
-- Not yet done: actual animated clip rendering, HyperFrames->Remotion alpha integration, licensed B-roll, audio mixing, original clips, final review.
+- Achieved: first 37.7-second private motion pilot, HyperFrames animated MP4 imported into Remotion, seven dialogue clips, illustrative vector B-roll, audio mix and FFmpeg loudness normalization. See docs/KAUTHAR_PREMIUM_DRYTEST_REPORT.md.
+- Not yet done: transparent-alpha WebM handoff, licensed live-action stock B-roll, publication clearance, 1080p export, human full listening QA.
 - See `docs/V2_IMAN_INSPIRED_PRODUCTION_ARCHITECTURE.md` for design and acceptance criteria.
 
 ## Workflow
