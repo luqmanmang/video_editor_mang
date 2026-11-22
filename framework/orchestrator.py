@@ -68,10 +68,24 @@ def main():
     r=sub.add_parser("route");r.add_argument("mode")
     s=sub.add_parser("resume");s.add_argument("state")
     t=sub.add_parser("gate");t.add_argument("state");t.add_argument("next_phase")
+    x=sub.add_parser("step",help="Run one checkpointed command and verify outputs")
+    x.add_argument("--state",required=True,help="Private JSON checkpoint path")
+    x.add_argument("--stage",required=True)
+    x.add_argument("--input",action="append",default=[],help="File dependency; can repeat")
+    x.add_argument("--output",action="append",required=True,help="Required output; can repeat")
+    x.add_argument("command",nargs=argparse.REMAINDER,help="Executable and arguments after --")
     opt=p.parse_args()
+    if opt.cmd=="step":
+        from stage_runtime import step
+        cmd=opt.command[1:] if opt.command and opt.command[0]=="--" else opt.command
+        return step(Path(opt.state).resolve(),opt.stage,cmd,opt.input,opt.output)
     if opt.cmd=="route":result=route(opt.mode)
     else:
         state=json.loads(Path(opt.state).read_text(encoding="utf-8"))
         result=resume(state) if opt.cmd=="resume" else check_transition(state,opt.next_phase)
+        if opt.cmd=="gate":
+            from stage_runtime import signal
+            signal("STAGE",opt.next_phase)
+            signal("GATE","phase_transition","PASS" if result["status"]=="ALLOWED" else "FAIL")
     print(json.dumps(result,ensure_ascii=False,indent=2))
-if __name__=="__main__":main()
+if __name__=="__main__":raise SystemExit(main() or 0)

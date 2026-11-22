@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+from stage_runtime import signal
 
 def run(args, check=True):
     p=subprocess.run(args,capture_output=True,text=True)
@@ -16,11 +17,19 @@ def main():
     a.add_argument("video")
     a.add_argument("--out-dir",required=True)
     a.add_argument("--plan")
+    a.add_argument("--width",type=int,default=720)
+    a.add_argument("--height",type=int,default=1280)
     opt=a.parse_args()
+    signal("STAGE","TECHNICAL_QA")
     video=Path(opt.video).resolve()
     out=Path(opt.out_dir).resolve();out.mkdir(parents=True,exist_ok=True)
     if not video.is_file(): raise FileNotFoundError(video)
-    info=json.loads(run(["ffprobe","-v","error","-show_format","-show_streams","-of","json",str(video)]).stdout)
+    try:
+        info=json.loads(run(["ffprobe","-v","error","-show_format","-show_streams","-of","json",str(video)]).stdout)
+        signal("GATE","ffprobe","PASS")
+    except (RuntimeError,ValueError) as exc:
+        signal("GATE","ffprobe","FAIL")
+        raise
     streams=info.get("streams",[])
     vids=[s for s in streams if s.get("codec_type")=="video"]
     auds=[s for s in streams if s.get("codec_type")=="audio"]
@@ -31,7 +40,7 @@ def main():
     plan_data=json.loads(Path(opt.plan).read_text(encoding="utf-8")) if opt.plan else None
     expected=max((float(s["start"])+float(s["duration"]) for s in plan_data.get("scenes",[])),default=None) if plan_data else None
     if dur<=0 or (expected is not None and abs(dur-expected)>0.7): errors.append("DURATION_OUT_OF_RANGE")
-    if vids and (vids[0].get("width"),vids[0].get("height"))!=(720,1280): errors.append("DIMENSIONS")
+    if vids and (vids[0].get("width"),vids[0].get("height"))!=(opt.width,opt.height): errors.append("DIMENSIONS")
     if run(["ffmpeg","-hide_banner","-v","error","-i",str(video),"-f","null","-"],check=False).returncode!=0:
         errors.append("DECODE_FAILURE")
     sheet=out/"kauthar_v3_contact.jpg"
@@ -59,5 +68,14 @@ def main():
     print(json.dumps({"technical_status":report["technical_status"],"errors":errors,
             "duration":dur,"contact_sheet":str(sheet),"report":str(out/"kauthar_v3_qa.json"),
             "creative_status":report["creative_status"]},indent=2))
+    signal("METRIC","duration_sec",round(dur,3))
+    signal("METRIC","file_size_bytes",video.stat().st_size)
+    signal("METRIC","qa_error_count",len(errors))
+    for gate,err in (("video_codec","VIDEO_CODEC"),("audio_codec","AUDIO_CODEC"),
+                     ("duration","DURATION_OUT_OF_RANGE"),("dimensions","DIMENSIONS"),
+                     ("full_decode","DECODE_FAILURE")):
+        signal("GATE",gate,"FAIL" if err in errors else "PASS")
+    signal("GATE","technical_qa","PASS" if not errors else "FAIL")
+    signal("GATE","creative_review","PENDING")
     if errors: sys.exit(2)
 if __name__=="__main__": main()

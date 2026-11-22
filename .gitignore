@@ -30,3 +30,4 @@ remotion-app/public/
 **/__pycache__/
 *.pyc
 framework/feedback/
+framework/.runtime/
