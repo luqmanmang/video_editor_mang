@@ -1,0 +1,32 @@
+{
+  "assets": [
+    {
+      "role": "experience",
+      "file": "stock/experience.mp4",
+      "page": "https://www.pexels.com/video/couple-walking-by-the-sea-9241543/",
+      "creator": "RDNE Stock project",
+      "download": "https://videos.pexels.com/video-files/9241543/9241543-hd_1080_1920_24fps.mp4",
+      "sha256": "97639abece2098483750b9e65681002713ec44602ffc04cf19de451a0e69a429",
+      "license": "PEXELS",
+      "license_url": "https://www.pexels.com/license/",
+      "license_status": "VERIFIED",
+      "description": "Pexels stock: couple walking at beach. Illustration; not creator footage."
+    },
+    {
+      "role": "giving",
+      "file": "stock/giving.mp4",
+      "page": "https://www.pexels.com/video/a-family-having-a-meal-8788959/",
+      "creator": "Kevin Malik",
+      "download": "https://videos.pexels.com/video-files/8788959/8788959-hd_1080_1920_24fps.mp4",
+      "sha256": "f61b87556e29ef7af36b8e4d8afabb03e3e5e8d2af72c6fadf9735ab7e07bc5b",
+      "license": "PEXELS",
+      "license_url": "https://www.pexels.com/license/",
+      "license_status": "VERIFIED",
+      "description": "Pexels stock: family dining together. Illustration; not Kauthar footage."
+    }
+  ],
+  "original_source_rights": "UNCLEARED_PRIVATE_PREVIEW",
+  "stock_selection_method": "manual-curated two specific public Pexels clips; no automated API access",
+  "checked_date": "2026-11-22",
+  "media_committed": false
+}

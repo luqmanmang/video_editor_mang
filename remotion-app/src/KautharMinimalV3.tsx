@@ -17,11 +17,11 @@ const LENGTH=segments.reduce((a,s)=>a+s.frames,0);
 
 /** Illustrative CC0 footage, muted; the source spoken audio continues underneath. */
 const inserts=[
-  {source:"stock/experience.webm", from:8.20, duration:2.65, captions:[
+  {source:"stock/experience.mp4", from:8.20, duration:2.65, captions:[
     {start:0,end:1.3,text:"kalau kita berbelanja"},
     {start:1.3,end:2.65,text:"untuk pengalaman"}
   ]},
-  {source:"stock/giving.webm",from:27.60,duration:2.75,captions:[
+  {source:"stock/giving.mp4",from:27.60,duration:2.75,captions:[
     {start:0,end:1.4,text:"kita mungkin belanja orang makan"},
     {start:1.4,end:2.75,text:"kita bagi hadiah"}
   ]},

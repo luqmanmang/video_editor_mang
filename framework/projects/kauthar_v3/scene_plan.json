@@ -49,9 +49,9 @@
       "story_beat": "SO1",
       "visual_reason": "Illustrative experience/travel footage advances narration",
       "asset": {
-        "file": "stock/experience.webm",
-        "page": "https://commons.wikimedia.org/wiki/File:Cloudy_Beach.webm",
-        "license": "CC0",
+        "file": "stock/experience.mp4",
+        "page": "https://www.pexels.com/video/couple-walking-by-the-sea-9241543/",
+        "license": "PEXELS",
         "license_status": "UNVERIFIED"
       },
       "voiceover_source": "02_experience.mp4",
@@ -105,9 +105,9 @@
       "story_beat": "SO3_DETAIL",
       "visual_reason": "Illustrative meal visual during spoken example",
       "asset": {
-        "file": "stock/giving.webm",
-        "page": "https://commons.wikimedia.org/wiki/File:Food_done_and_ready.webm",
-        "license": "CC0",
+        "file": "stock/giving.mp4",
+        "page": "https://www.pexels.com/video/a-family-having-a-meal-8788959/",
+        "license": "PEXELS",
         "license_status": "UNVERIFIED"
       },
       "voiceover_source": "06_give_example.mp4",
