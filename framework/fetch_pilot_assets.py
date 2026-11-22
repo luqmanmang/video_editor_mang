@@ -75,4 +75,16 @@ if __name__=="__main__":
               "note":"CC0 applies to stock assets only; Kauthar A-roll remains private."}
     path=ROOT/"remotion-app"/"public"/"stock"/"asset_licenses.json"
     path.write_text(json.dumps(manifest,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
+    if all(a.get("license_status")=="VERIFIED" for a in assets):
+        plan_path=ROOT/"framework"/"projects"/"kauthar_v3"/"scene_plan.json"
+        plan=json.loads(plan_path.read_text(encoding="utf-8"))
+        by_role={a["role"]:a for a in assets}
+        for scene in plan["scenes"]:
+            if scene["type"]=="b_roll":
+                role="experience" if "experience" in scene["asset"]["file"] else "giving"
+                scene["asset"]=by_role[role]
+        cache=ROOT/"framework"/".cache"
+        cache.mkdir(parents=True,exist_ok=True)
+        (cache/"kauthar_v3_verified.json").write_text(json.dumps(plan,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
+        manifest["verified_plan"]="framework/.cache/kauthar_v3_verified.json"
     print(json.dumps(manifest, indent=2, ensure_ascii=False))

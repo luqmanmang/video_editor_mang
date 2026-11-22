@@ -27,3 +27,6 @@ source_videos/
 scratch/
 tmp/
 remotion-app/public/
+**/__pycache__/
+*.pyc
+framework/feedback/
