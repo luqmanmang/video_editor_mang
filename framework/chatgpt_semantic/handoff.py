@@ -275,6 +275,17 @@ def main():
                     read(v).get("status")=="PENDING_CHATGPT"] if root.is_dir() else []
         print(json.dumps(result,indent=2,ensure_ascii=False));return 0
     except (OSError,ValueError,RuntimeError,KeyError) as e:
+        # Failed validations are evidence too. Keep them local for RCA; never alter
+        # a previously validated decision or pretend failure is semantic PASS.
+        try:
+            if args.command=="submit" and re.fullmatch(r"sem_[a-f0-9]{20}",args.job_id):
+                folder=args.runtime/"jobs"/args.job_id
+                if folder.is_dir(): log(folder,"SUBMIT_REJECTED",reason=str(e))
+            elif args.command=="prepare":
+                args.runtime.mkdir(parents=True,exist_ok=True)
+                log(args.runtime,"PREPARE_REJECTED",reason=str(e))
+        except OSError:
+            pass
         print(json.dumps({"status":"FAILED","error":str(e)},ensure_ascii=False),file=sys.stderr)
         return 2
 
