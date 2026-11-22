@@ -40,7 +40,7 @@ class StageRuntimeTests(unittest.TestCase):
             checkpoint=root/"checkpoint.json"
             artifact=root/"out.txt"
             fail=[sys.executable,"-c","import sys; sys.exit(4)"]
-            with contextlib.redirect_stdout(io.StringIO()):
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
                 code=step(checkpoint,"RENDERED",fail,[],[str(artifact)])
             self.assertEqual(code,4)
             self.assertEqual(json.loads(checkpoint.read_text())["stages"]["RENDERED"]["status"],"FAILED")
@@ -66,7 +66,7 @@ class StageRuntimeTests(unittest.TestCase):
     def test_missing_input_hard_fails_without_pass(self):
         with tempfile.TemporaryDirectory() as d:
             root=Path(d)
-            with contextlib.redirect_stdout(io.StringIO()) as output:
+            with contextlib.redirect_stdout(io.StringIO()) as output, contextlib.redirect_stderr(io.StringIO()):
                 code=step(root/"state.json","SOURCE_REVIEW",[sys.executable,"-c","pass"],
                           [str(root/"missing.mp4")],[str(root/"out.mp4")])
             self.assertEqual(code,2)
