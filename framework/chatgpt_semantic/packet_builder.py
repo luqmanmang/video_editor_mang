@@ -43,8 +43,12 @@ def build_source(spec_file, out_dir, *, chunk_chars=4200):
     must(isinstance(segments,list) and segments,"Transcript must contain segments, not scene summaries")
     must(all(isinstance(v,dict) and v.get("text") for v in segments),
          "Actual transcription text required for every segment")
-    must(transcript.get("transcript_origin") in ("HUMAN_VERIFIED","ASR_UNVERIFIED") if isinstance(transcript,dict) else False,
-         "transcript_origin must be HUMAN_VERIFIED or ASR_UNVERIFIED")
+    must(transcript.get("transcript_origin") in
+         ("HUMAN_VERIFIED","ASR_UNVERIFIED","TEST_FIXTURE") if isinstance(transcript,dict) else False,
+         "transcript_origin must be HUMAN_VERIFIED, ASR_UNVERIFIED or TEST_FIXTURE")
+    if transcript.get("transcript_origin")=="TEST_FIXTURE":
+        must(str(s["project_id"]).startswith("smoke_"),
+             "TEST_FIXTURE restricted to smoke_ projects")
     transcript_origin=transcript["transcript_origin"]
 
     refs=[{"path":str(spec_file),"kind":"project_spec"},
