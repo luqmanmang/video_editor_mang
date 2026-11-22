@@ -17,6 +17,16 @@ def main():
     new = new.replace('{file:"01_hook.mp4", duration:5.92}',
                       '{file:"00_prediction_setup.mp4", duration:14.56}')
     new = new.replace("from:8.20", "from:16.84").replace("from:27.60", "from:36.24")
+    # Source clip includes a baked upper headline. Uniform crop zoom hides it
+    # while preserving face and lower subtitle; no new headline is introduced.
+    old_video = """<OffthreadVideo src={staticFile("media/"+seg.file)} muted
+          style={{width:"100%",height:"100%",objectFit:"cover"}}/>"""
+    new_video = """<OffthreadVideo src={staticFile("media/"+seg.file)} muted
+          style={{width:"100%",height:"100%",objectFit:"cover",
+            ...(i===0 ? {transform:"scale(1.17)", transformOrigin:"center bottom"} : {})}}/>"""
+    if old_video not in new:
+        raise RuntimeError("MISSING_AROLL_RENDER_MARKER")
+    new = new.replace(old_video, new_video)
     (SRC / "KautharMinimalV31.tsx").write_text(new, encoding="utf-8")
     rootpath=SRC/"Root.tsx"
     root=rootpath.read_text(encoding="utf-8")
@@ -41,7 +51,8 @@ def main():
             scene["duration"]=14.56
             scene["source"]="00_prediction_setup.mp4"
             scene["story_beat"]="HOOK_PREDICTION_AND_COUNTERARGUMENT"
-            scene["visual_reason"]="Original speaker sets up three unexpected spending categories and counters luxury prediction"
+            scene["visual_reason"]="Original speaker sets up three unexpected spending categories; baked upper headline is cropped without cutting face or source captions"
+            scene["render_reframe"]={"scale":1.17,"origin":"center bottom","reason":"remove baked upper headline from original source"}
         else:
             scene["start"]=round(scene["start"]+8.64,2)
     (F/"scene_plan_31.json").write_text(json.dumps(plan,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")

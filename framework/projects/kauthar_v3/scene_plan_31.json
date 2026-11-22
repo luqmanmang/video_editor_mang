@@ -27,10 +27,15 @@
       "start": 0,
       "duration": 14.56,
       "story_beat": "HOOK_PREDICTION_AND_COUNTERARGUMENT",
-      "visual_reason": "Original speaker sets up three unexpected spending categories and counters luxury prediction",
+      "visual_reason": "Original speaker sets up three unexpected spending categories; baked upper headline is cropped without cutting face or source captions",
       "source": "00_prediction_setup.mp4",
       "captions": "source_burned_in",
-      "headline": null
+      "headline": null,
+      "render_reframe": {
+        "scale": 1.17,
+        "origin": "center bottom",
+        "reason": "remove baked upper headline from original source"
+      }
     },
     {
       "type": "a_roll",

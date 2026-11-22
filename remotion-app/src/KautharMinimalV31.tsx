@@ -47,7 +47,8 @@ const Video:React.FC=()=>(
     {segments.map((seg,i)=>(
       <Sequence key={seg.file} from={offsets[i]} durationInFrames={seg.frames}>
         <OffthreadVideo src={staticFile("media/"+seg.file)} muted
-          style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+          style={{width:"100%",height:"100%",objectFit:"cover",
+            ...(i===0 ? {transform:"scale(1.17)", transformOrigin:"center bottom"} : {})}}/>
         <Audio src={staticFile("media/"+seg.file)} volume={(f)=>Math.max(0,Math.min(.98,f/3,(seg.frames-f)/3))}/>
       </Sequence>
     ))}
