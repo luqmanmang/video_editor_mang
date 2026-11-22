@@ -5,6 +5,7 @@ import tempfile
 import unittest
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from studio import review, debate_state, api_search, feedback
+from orchestrator import route, check_transition
 
 STORY = dict(objective="trust", viewer="personal finance audience",
   hook_promise="why temporary purchase happiness fails",
@@ -53,4 +54,16 @@ class StudioTests(unittest.TestCase):
             feedback(p,"demo","00:10","too much graphics","minimalist style")
             feedback(p,"demo","00:20","too much text","caption-only")
             self.assertEqual(len(p.read_text().strip().splitlines()),2)
+    def test_orchestrator_skills_exist(self):
+        result=route("PRODUCE")
+        self.assertEqual(len(result["skills"]),4)
+        self.assertTrue(result["independent_model_calls"].startswith("NOT_CONFIGURED"))
+    def test_no_skipped_or_unapproved_gate(self):
+        state={"phase":"INTAKE","story_lock_approved":False,"rights_status":"UNCLEARED","distribution":"PRIVATE"}
+        self.assertEqual(check_transition(state,"RENDERED")["reason"],"SKIPPED_GATE")
+        state["phase"]="HUMAN_REVIEW"
+        self.assertEqual(check_transition(state,"COMPLETE")["reason"],"STORY_LOCK_NOT_APPROVED")
+    def test_no_public_release_with_unverified_rights(self):
+        state={"phase":"INTAKE","rights_status":"UNCLEARED","distribution":"PUBLIC"}
+        self.assertEqual(check_transition(state,"SOURCE_REVIEW")["reason"],"PUBLIC_RIGHTS_NOT_CLEARED")
 if __name__ == "__main__": unittest.main()

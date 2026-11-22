@@ -32,3 +32,12 @@ https://hyperframes.app/docs/5-packages/cli
 https://www.pexels.com/api/documentation/
 https://pixabay.com/api/docs/
 https://commons.wikimedia.org/wiki/Commons:Machine-readable_data
+
+## Verified implementation update
+- Task routing and resume: python3 framework/orchestrator.py route PRODUCE ; python3 framework/orchestrator.py resume PATH_TO_PRIVATE_PROJECT_STATE_JSON. Windows private state: D:\Thread Automation\Video_Clipping_Studio\projects\kauthar_v3\project_state.json.
+- Unit tests now: 11. Independent LLM reviewer API calls are NOT configured; review state machine rejects ungrounded verdicts.
+- RemotionUI initialized with remotion-app/remotion-ui.json. Vendor search command fails schema parsing on atlas.lane items; use local catalog metadata and python3 framework/motion_catalog.py framework/.cache/remotionui_catalog_verified.json caption. 254 catalog entries discovered, NOT individually installed.
+- Two selected Pexels clips downloaded and checksum verified on Windows and Codespace. Original Kauthar creator source rights remain unverified. Pexels/Pixabay API adapters block live API searches without credentials.
+- Kauthar V3 output on Windows: outputs/kauthar_minimal_v3_720p.mp4 ; 37.653s, 720x1280 H264/AAC, full decode PASS. Burned-in source captions unchanged; illustrative stock captions need listening check.
+- Critical creative correction: V3 starts mid-argument on 'Tapi keseronokan yang sementara'. V3.1 uses original 0.00-14.58s footage to establish the three-category prediction and contrast luxury goods before revealing categories. Source clip is private-only, not in public Git.
+- Run technical QA: python3 framework/qa_render.py VIDEO --out-dir QA_DIR . Human creative approval remains mandatory.

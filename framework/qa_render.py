@@ -28,14 +28,17 @@ def main():
     errors=[]
     if len(vids)!=1 or vids[0].get("codec_name")!="h264": errors.append("VIDEO_CODEC")
     if not auds or auds[0].get("codec_name")!="aac": errors.append("AUDIO_CODEC")
-    if not 36<=dur<=39: errors.append("DURATION_OUT_OF_RANGE")
+    plan_data=json.loads(Path(opt.plan).read_text(encoding="utf-8")) if opt.plan else None
+    expected=max((float(s["start"])+float(s["duration"]) for s in plan_data.get("scenes",[])),default=None) if plan_data else None
+    if dur<=0 or (expected is not None and abs(dur-expected)>0.7): errors.append("DURATION_OUT_OF_RANGE")
     if vids and (vids[0].get("width"),vids[0].get("height"))!=(720,1280): errors.append("DIMENSIONS")
     if run(["ffmpeg","-hide_banner","-v","error","-i",str(video),"-f","null","-"],check=False).returncode!=0:
         errors.append("DECODE_FAILURE")
     sheet=out/"kauthar_v3_contact.jpg"
     run(["ffmpeg","-y","-hide_banner","-loglevel","error","-i",str(video),
          "-vf","fps=1/2.9,scale=180:320,tile=4x4","-frames:v","1",str(sheet)])
-    shot_times=[1.0,8.9,9.7,27.9,29.1,35.1]
+    brolls=[s for s in plan_data.get("scenes",[]) if s.get("type")=="b_roll"] if plan_data else []
+    shot_times=([1.0]+[float(s["start"])+.30 for s in brolls]+[float(s["start"])+float(s["duration"])-.30 for s in brolls]+[max(0,dur-2.0)]) if brolls else [max(0,dur*p) for p in (0.05,0.25,0.50,0.75,0.95)]
     stills=[]
     for i,t in enumerate(shot_times):
         frame=out/f"v3_frame_{i+1:02d}_{t:.1f}s.jpg"
@@ -44,6 +47,7 @@ def main():
         stills.append(str(frame))
     report={"video":str(video),"duration":dur,"bytes":video.stat().st_size,
             "video_stream":vids[0] if vids else None,"audio_stream":auds[0] if auds else None,
+            "expected_timeline_duration":expected,
             "technical_status":"PASS" if not errors else "FAIL",
             "errors":errors,"contact_sheet":str(sheet),"sample_frames":stills,
             "creative_status":"PENDING_HUMAN_WATCH_AND_AUDIO_LISTEN",
