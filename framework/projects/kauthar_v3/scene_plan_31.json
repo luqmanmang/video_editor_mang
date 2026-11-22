@@ -1,0 +1,138 @@
+{
+  "project_id": "kauthar_minimal_v31_prediction_hook",
+  "public_release": false,
+  "source_rights": "UNCLEARED",
+  "human_story_lock": false,
+  "render_mode": "preview",
+  "story": {
+    "objective": "Educational private demo of meaningful spending; no creator endorsement",
+    "viewer": "BM personal-finance TikTok audience",
+    "hook_promise": "What are the three less-obvious types of spending the speaker associates with happiness?",
+    "viewer_prediction": "Luxury house, sports car or expensive goods may be presumed as answers",
+    "want": "The viewer wants to discover three spending categories beyond status possessions",
+    "tapi": "The speaker explicitly contrasts these ideas with luxury home, car and physical goods",
+    "so": "The speaker outlines experiences together, buying back time and spending on others",
+    "payoff": "The three categories are not simply new material possessions",
+    "source_factual_limits": "Original speaker says there is a study but study is not verified; preserve speech as attribution, not empirical proof."
+  },
+  "style_profile": {
+    "profile": "minimalist_talking_head",
+    "complex_animation": false,
+    "a_roll_headline": false,
+    "allow_real_broll": true
+  },
+  "scenes": [
+    {
+      "type": "a_roll",
+      "start": 0,
+      "duration": 14.56,
+      "story_beat": "HOOK_PREDICTION_AND_COUNTERARGUMENT",
+      "visual_reason": "Original speaker sets up three unexpected spending categories and counters luxury prediction",
+      "source": "00_prediction_setup.mp4",
+      "captions": "source_burned_in",
+      "headline": null
+    },
+    {
+      "type": "a_roll",
+      "start": 14.56,
+      "duration": 2.28,
+      "story_beat": "WANT",
+      "visual_reason": "Speaker introduces experiences, no extra text",
+      "source": "02_experience.mp4",
+      "captions": "source_burned_in",
+      "headline": null
+    },
+    {
+      "type": "b_roll",
+      "start": 16.84,
+      "duration": 2.65,
+      "story_beat": "SO1",
+      "visual_reason": "Illustrative experience/travel footage advances narration",
+      "asset": {
+        "file": "stock/experience.mp4",
+        "page": "https://www.pexels.com/video/couple-walking-by-the-sea-9241543/",
+        "license": "PEXELS",
+        "license_status": "UNVERIFIED"
+      },
+      "voiceover_source": "02_experience.mp4",
+      "subtitle_policy": "generated_positioned",
+      "audio": "original_dialogue_only"
+    },
+    {
+      "type": "a_roll",
+      "start": 19.49,
+      "duration": 3.96,
+      "story_beat": "SO1",
+      "visual_reason": "Return to speaker for context and transition",
+      "source": "02_experience.mp4",
+      "captions": "source_burned_in",
+      "headline": null
+    },
+    {
+      "type": "a_roll",
+      "start": 23.45,
+      "duration": 3.1,
+      "story_beat": "SO2",
+      "visual_reason": "Real speaker introduces buying back time",
+      "source": "03_time.mp4",
+      "captions": "source_burned_in",
+      "headline": null
+    },
+    {
+      "type": "a_roll",
+      "start": 26.55,
+      "duration": 5.79,
+      "story_beat": "SO2_DETAIL",
+      "visual_reason": "Speaker explains meaningful time; animation not needed",
+      "source": "04_time_why.mp4",
+      "captions": "source_burned_in",
+      "headline": null
+    },
+    {
+      "type": "a_roll",
+      "start": 32.34,
+      "duration": 3.9,
+      "story_beat": "SO3",
+      "visual_reason": "Speaker introduces spending on others",
+      "source": "05_give.mp4",
+      "captions": "source_burned_in",
+      "headline": null
+    },
+    {
+      "type": "b_roll",
+      "start": 36.24,
+      "duration": 2.75,
+      "story_beat": "SO3_DETAIL",
+      "visual_reason": "Illustrative meal visual during spoken example",
+      "asset": {
+        "file": "stock/giving.mp4",
+        "page": "https://www.pexels.com/video/a-family-having-a-meal-8788959/",
+        "license": "PEXELS",
+        "license_status": "UNVERIFIED"
+      },
+      "voiceover_source": "06_give_example.mp4",
+      "subtitle_policy": "generated_positioned",
+      "audio": "original_dialogue_only"
+    },
+    {
+      "type": "a_roll",
+      "start": 38.99,
+      "duration": 2.74,
+      "story_beat": "SO3_DETAIL",
+      "visual_reason": "Return to speaker to finish example",
+      "source": "06_give_example.mp4",
+      "captions": "source_burned_in",
+      "headline": null
+    },
+    {
+      "type": "a_roll",
+      "start": 41.73,
+      "duration": 4.51,
+      "story_beat": "PAYOFF",
+      "visual_reason": "Close with source speaker, no graphic recap",
+      "source": "07_payoff.mp4",
+      "captions": "source_burned_in",
+      "headline": null
+    }
+  ]
+}
