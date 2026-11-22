@@ -3,11 +3,11 @@
 ## Result
 - Status: **Private creative QA demo, not cleared for publication**
 - Format: H.264 MP4 720 × 1280 / 30 fps, AAC stereo
-- Length: **37.653 seconds** (1129 frames)
-- Final render size: **12,318,256 bytes**
+- Length: **37.700 seconds** (1129-frame timeline; normalized container duration)
+- Final render size: **11,743,850 bytes** (audio-normalized V2)
 - Rendered on GitHub Codespace: psychic-space-winner-p7gr9q5vj4gq27rq7
 - Actual runtime after restart: 4 CPUs, ~15GiB visible RAM, 32GB disk tier
-- Final on PC: D:\Thread Automation\Video_Clipping_Studio\outputs\kauthar_premium_drytest.mp4
+- Final on PC: D:\Thread Automation\Video_Clipping_Studio\outputs\kauthar_premium_drytest_v2.mp4
 - Final in Codespace (not committed): remotion-app/out/kauthar_premium_drytest.mp4
 - Private preview port 4188, visibility private (requires GitHub session)
 - Contact sheet: remotion-app/out/kauthar_premium_contact.jpg
@@ -36,6 +36,7 @@
 - PASS: FFprobe confirms H264 video and AAC stereo audio stream.
 - PASS: FFmpeg decoded full output with exit code 0.
 - PASS: Final video contact sheet inspected (8 samples).
+- PASS: Audio normalized with FFmpeg loudnorm, measured mean -19.2 dB and max -1.5 dB; V2 full decode passed.
 - PENDING: full human watch/listen review, sentence-level audio cut listening, definitive style audit, loudness measurement and trim refinements.
 - PENDING: publication rights / creator permission; no public publishing or monetization authorized.
 
