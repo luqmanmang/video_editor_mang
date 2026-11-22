@@ -1,0 +1,55 @@
+{
+  "profile": "minimalist_talking_head",
+  "version": "3.0.0",
+  "defaults": {
+    "base_visual": "a_roll",
+    "complex_animation": false,
+    "a_roll_headline": false,
+    "section_labels": false,
+    "progress_bar": false,
+    "watermark_overlay": false,
+    "duplicate_captions": false,
+    "stock_search_on_demand": true,
+    "require_visual_reason": true,
+    "keep_existing_source_subtitles_if_burned_in": true,
+    "face_aware_new_subtitles": "only_when_clean_source_available",
+    "broll_audio": "mute",
+    "broll_style": "contextual_real_footage",
+    "transitions": "hard_cut_or_short_dissolve",
+    "no_change_is_valid": true
+  },
+  "rules": [
+    {
+      "id": "VIS-01",
+      "test": "A-roll prioritized when enough clarity"
+    },
+    {
+      "id": "VIS-02",
+      "test": "Every B-roll asset has verified license and factual relevance"
+    },
+    {
+      "id": "VIS-03",
+      "test": "Complex motion forbidden by default"
+    },
+    {
+      "id": "VIS-04",
+      "test": "No headline/section label/progress on A-roll"
+    },
+    {
+      "id": "CAP-01",
+      "test": "Source burned-in caption is preserved; do not duplicate"
+    },
+    {
+      "id": "CAP-02",
+      "test": "Clean footage: generated caption below face or safe lower-center"
+    },
+    {
+      "id": "CUT-01",
+      "test": "No cut changing meaning or breaking sentence continuity"
+    },
+    {
+      "id": "MIN-01",
+      "test": "KEEP/REMOVE/REPLACE before ADD"
+    }
+  ]
+}

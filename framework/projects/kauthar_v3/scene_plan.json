@@ -1,0 +1,138 @@
+{
+  "project_id": "kauthar_minimal_v3",
+  "public_release": false,
+  "source_rights": "UNCLEARED",
+  "human_story_lock": false,
+  "render_mode": "preview",
+  "story": {
+    "objective": "Educational private demo of meaningful spending; no creator endorsement",
+    "viewer": "BM personal-finance TikTok audience",
+    "hook_promise": "Why buying things can feel satisfying only briefly, and what else could matter",
+    "viewer_prediction": "Viewer may expect simply buying more or more expensive goods to restore satisfaction",
+    "want": "Viewer wants spending choices that feel more meaningful",
+    "tapi": "Purchase excitement can be short-lived; no guarantee that all material purchases are bad",
+    "so": "Explore shared experiences, reclaimed time and generosity in original dialogue",
+    "payoff": "Three suggested categories are not merely buying physical possessions",
+    "source_factual_limits": "Creator's unspecified study and quick dopamine language not independently fact checked"
+  },
+  "style_profile": {
+    "profile": "minimalist_talking_head",
+    "complex_animation": false,
+    "a_roll_headline": false,
+    "allow_real_broll": true
+  },
+  "scenes": [
+    {
+      "type": "a_roll",
+      "start": 0,
+      "duration": 5.92,
+      "story_beat": "HOOK",
+      "visual_reason": "Source speaker starts with short-lived satisfaction; preserve original expression",
+      "source": "01_hook.mp4",
+      "captions": "source_burned_in",
+      "headline": null
+    },
+    {
+      "type": "a_roll",
+      "start": 5.92,
+      "duration": 2.28,
+      "story_beat": "WANT",
+      "visual_reason": "Speaker introduces experiences, no extra text",
+      "source": "02_experience.mp4",
+      "captions": "source_burned_in",
+      "headline": null
+    },
+    {
+      "type": "b_roll",
+      "start": 8.2,
+      "duration": 2.65,
+      "story_beat": "SO1",
+      "visual_reason": "Illustrative experience/travel footage advances narration",
+      "asset": {
+        "file": "stock/experience.webm",
+        "page": "https://commons.wikimedia.org/wiki/File:Cloudy_Beach.webm",
+        "license": "CC0",
+        "license_status": "UNVERIFIED"
+      },
+      "voiceover_source": "02_experience.mp4",
+      "subtitle_policy": "generated_positioned",
+      "audio": "original_dialogue_only"
+    },
+    {
+      "type": "a_roll",
+      "start": 10.85,
+      "duration": 3.96,
+      "story_beat": "SO1",
+      "visual_reason": "Return to speaker for context and transition",
+      "source": "02_experience.mp4",
+      "captions": "source_burned_in",
+      "headline": null
+    },
+    {
+      "type": "a_roll",
+      "start": 14.81,
+      "duration": 3.1,
+      "story_beat": "SO2",
+      "visual_reason": "Real speaker introduces buying back time",
+      "source": "03_time.mp4",
+      "captions": "source_burned_in",
+      "headline": null
+    },
+    {
+      "type": "a_roll",
+      "start": 17.91,
+      "duration": 5.79,
+      "story_beat": "SO2_DETAIL",
+      "visual_reason": "Speaker explains meaningful time; animation not needed",
+      "source": "04_time_why.mp4",
+      "captions": "source_burned_in",
+      "headline": null
+    },
+    {
+      "type": "a_roll",
+      "start": 23.7,
+      "duration": 3.9,
+      "story_beat": "SO3",
+      "visual_reason": "Speaker introduces spending on others",
+      "source": "05_give.mp4",
+      "captions": "source_burned_in",
+      "headline": null
+    },
+    {
+      "type": "b_roll",
+      "start": 27.6,
+      "duration": 2.75,
+      "story_beat": "SO3_DETAIL",
+      "visual_reason": "Illustrative meal visual during spoken example",
+      "asset": {
+        "file": "stock/giving.webm",
+        "page": "https://commons.wikimedia.org/wiki/File:Food_done_and_ready.webm",
+        "license": "CC0",
+        "license_status": "UNVERIFIED"
+      },
+      "voiceover_source": "06_give_example.mp4",
+      "subtitle_policy": "generated_positioned",
+      "audio": "original_dialogue_only"
+    },
+    {
+      "type": "a_roll",
+      "start": 30.35,
+      "duration": 2.74,
+      "story_beat": "SO3_DETAIL",
+      "visual_reason": "Return to speaker to finish example",
+      "source": "06_give_example.mp4",
+      "captions": "source_burned_in",
+      "headline": null
+    },
+    {
+      "type": "a_roll",
+      "start": 33.09,
+      "duration": 4.51,
+      "story_beat": "PAYOFF",
+      "visual_reason": "Close with source speaker, no graphic recap",
+      "source": "07_payoff.mp4",
+      "captions": "source_burned_in",
+      "headline": null
+    }
+  ]
+}

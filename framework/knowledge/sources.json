@@ -1,0 +1,48 @@
+{
+  "source_hierarchy": [
+    {
+      "id": "BOOK-INDEX",
+      "name": "The Storytelling Code 68-principle index",
+      "location": "Private ChatGPT Project file only; do NOT copy protected notes to public repo",
+      "status": "AVAILABLE_IN_PROJECT"
+    },
+    {
+      "id": "BOOK-NOTES",
+      "name": "The Storytelling Code original notes",
+      "location": "Private Library",
+      "status": "NOT_MIRRORED_PUBLIC"
+    },
+    {
+      "id": "BOOK-LIMIT",
+      "name": "Master Your Hook reconstructed partially",
+      "status": "SOURCE_GAP"
+    }
+  ],
+  "public_docs": [
+    {
+      "name": "Remotion",
+      "url": "https://www.remotion.dev/docs"
+    },
+    {
+      "name": "HyperFrames registry",
+      "url": "https://hyperframes.app/docs/5-packages/cli"
+    },
+    {
+      "name": "RemotionUI",
+      "url": "https://remotionui.com/docs/cli"
+    },
+    {
+      "name": "Pexels API",
+      "url": "https://www.pexels.com/api/documentation/"
+    },
+    {
+      "name": "Pixabay API",
+      "url": "https://pixabay.com/api/docs/"
+    },
+    {
+      "name": "Wikimedia Commons imageinfo license metadata",
+      "url": "https://www.mediawiki.org/wiki/API:Imageinfo"
+    }
+  ],
+  "evidence_rule": "Editorial hypotheses are not empirical proof; source/creator rights validated per asset; no fabricated audience tests."
+}
