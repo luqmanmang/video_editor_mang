@@ -13,7 +13,7 @@ import {
  */
 const FPS = 30;
 const parts = [
-  {file: "00_prediction_setup.mp4", duration: 14.56, base: 1.17, motion: false},
+  {file: "00_prediction_setup.mp4", duration: 14.56, base: 1.00, motion: false},
   {file: "02_experience.mp4", duration: 8.89, base: 1.00, motion: true},
   {file: "03_time.mp4", duration: 3.10, base: 1.00, motion: false},
   {file: "04_time_why.mp4", duration: 5.79, base: 1.00, motion: true},
@@ -57,8 +57,7 @@ const SubtleARoll: React.FC<{part: typeof parts[number]}> = ({part}) => {
         style={{
           width: "100%", height: "100%", objectFit: "cover",
           transform: "scale(" + (part.base * z) + ")",
-          transformOrigin: part.file === "00_prediction_setup.mp4"
-            ? "center bottom" : "center center",
+          transformOrigin: "center center",
         }}/>
     </AbsoluteFill>
   );
