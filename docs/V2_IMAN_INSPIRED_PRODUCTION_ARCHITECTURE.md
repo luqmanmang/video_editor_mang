@@ -1,6 +1,6 @@
 # Video Clipping Studio v2 ? Motion-First Production Architecture (STAGING)
 Date: 2026-11-22
-Status: DESIGN ONLY ? HyperFrames and Remotion NOT YET INSTALLED, INTEGRATION NOT TESTED.
+Status: DESIGN + SCAFFOLD VALIDATED — Remotion/HyperFrames installed in Codespace staging (see docs/SETUP_LOG_2026-11-22.md); actual motion handoff and full video not yet tested.
 Reference tutorial: user-provided "Pasted text.txt" ? ~39m55s Iman Gadzhi-inspired recreation tutorial, third-party analysis not Iman's official editing playbook.
 Target: Clip multiple third-party, rights-cleared source videos into a coherent, well-produced 30?60s short; ChatGPT controls tools on Windows via Remote Desktop Commander.
 
@@ -81,7 +81,7 @@ These are proposed edit beats; exact timing and footage must be revised against 
 - No additional cloud SaaS, paid stock or API implied by installation. Use only approved licensing and providers.
 - Avoid caching full raw-video duplicates; cache short intermediates and generated graphics.
 - Third-party videos are UNKNOWN rights until cleared. Private internal test only.
-- No actual source assets or HyperFrames/Remotion integration installed by this document.
+- Framework scaffolds are installed in Codespace staging, but no source footage, motion-to-timeline handoff or full edited video has been validated yet.
 
 ## Acceptance tests (priority order)
 A. Remotion alone: video clip + captions + 1 B-roll + music preview end-to-end; 10?15s test.
