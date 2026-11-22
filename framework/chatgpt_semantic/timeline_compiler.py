@@ -53,7 +53,10 @@ def compile_job(job_dir):
         a=frame(c["timeline_start_ms"])
         z=frame(c["timeline_start_ms"]+c["duration_ms"])
         assert_ok(z>a,"Zero-frame source clip")
-        compiled.append({"clip_id":c["clip_id"],"src":c["src"],"from_frame":a,
+        assert_ok(len(c.get("source_sha256",""))==64,
+                  "Source clip missing checksum from packet builder")
+        compiled.append({"clip_id":c["clip_id"],"src":c["src"],
+                         "source_sha256":c["source_sha256"],"from_frame":a,
                          "duration_frames":z-a,
                          "trim_before_frames":frame(c["source_in_ms"]),
                          "base_scale":float(c.get("base_scale",1.0)),
@@ -81,11 +84,29 @@ def compile_job(job_dir):
             asset=assets[br["asset_id"]]
             assert_ok(asset["license_status"]=="VERIFIED","B-roll provenance invalid")
             safe_src(asset["src"])
+            captions=[]
+            for segment in src["segments"]:
+                if segment["end_ms"]<=a or segment["start_ms"]>=z:
+                    continue
+                text=segment["text"].strip()
+                cue_start=frame(max(segment["start_ms"],a))
+                cue_end=frame(min(segment["end_ms"],z))
+                if cue_end<=cue_start:
+                    continue
+                if len(text)>64:
+                    blockers.append("BROLL_CAPTION_TEXT_TOO_LONG:"+beat["beat_id"])
+                captions.append({"start_frame":cue_start,"end_frame":cue_end,
+                                 "text":text,"segment_id":segment["segment_id"]})
+            if not captions:
+                blockers.append("BROLL_WITHOUT_SPOKEN_CAPTION:"+beat["beat_id"])
+            if src.get("transcript_origin")!="HUMAN_VERIFIED":
+                blockers.append("BROLL_CAPTIONS_NOT_HUMAN_VERIFIED:"+beat["beat_id"])
+            warnings.append("BROLL_CAPTIONS_REQUIRE_VISUAL_LISTENING_QA:"+beat["beat_id"])
             brolls.append({"beat_id":beat["beat_id"],"asset_id":asset["asset_id"],
                            "src":asset["src"],"from_frame":a_f,
                            "duration_frames":z_f-a_f,"muted":True,
                            "source_url":asset["source_url"],
-                           "source_sha256":asset["sha256"]})
+                           "source_sha256":asset["sha256"],"caption_cues":captions})
         m=beat["motion"]
         if m["mode"]!="STATIC":
             start_clip=clipmap[segs[beat["start_segment_id"]]["clip_id"]]
@@ -129,7 +150,10 @@ def compile_job(job_dir):
                       "input_fingerprint":req["input_fingerprint"],
                       "decision_sha256":file_sha(decision_path),
                       "revision":decision["revision"],
-                      "source_rights":src["video"].get("source_rights","UNCLEARED")}
+                      "source_rights":src["video"].get("source_rights","UNCLEARED"),
+                      "transcript_origin":src.get("transcript_origin","UNSPECIFIED"),
+                      "decision_source":decision["decision_source"],
+                      "review_ref":decision["review_ref"]}
     }
     props={"timeline":timeline}
     compiler_digest=file_sha(__file__)

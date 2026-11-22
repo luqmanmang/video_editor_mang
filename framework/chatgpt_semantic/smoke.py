@@ -48,6 +48,17 @@ def pipeline(work,app,run_render):
     data=prepare(bundle["source"],runtime)
     folder=Path(data["folder"])
     template=read(folder/"response_template.json")
+    template["decision_source"]="SYNTHETIC_TEST"
+    template["review_ref"]="automated_synthetic_fixture_not_chatgpt"
+    template["story_map"]={
+        "hook_promise":"Synthetic test needs the end-to-end video export to work",
+        "viewer_prediction":"A deterministic short preview should render correctly",
+        "want":"Smoke fixture wants a verified two-second test output",
+        "tapi":"Pipeline may reject malformed media or stale source lineage",
+        "so":"A fully checked synthetic fixture can reach the render stage",
+        "payoff":"720p H264 AAC output is verified with full frame decode",
+        "causal_reason":"Passing contract gates allows exactly one private test render",
+        "factual_limitations":"This is a synthetic tone video, not spoken human footage"}
     template["beats"]=[
      {"beat_id":"fixture_hook","start_segment_id":"fixture_01","end_segment_id":"fixture_01",
       "evidence_segment_ids":["fixture_01"],"story_role":"HOOK",

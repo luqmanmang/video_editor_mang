@@ -31,3 +31,7 @@ remotion-app/public/
 *.pyc
 framework/feedback/
 framework/.runtime/
+semantic_runtime/
+**/semantic_runtime/
+**/semantic_inputs/
+**/transcripts_private/

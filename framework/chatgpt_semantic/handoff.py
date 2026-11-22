@@ -6,7 +6,7 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 HERE = Path(__file__).resolve().parent
 RUNTIME = HERE.parents[2] / "semantic_runtime"
 ROLES = {"HOOK","WANT","TAPI","SO","PAYOFF","CONTEXT"}
@@ -73,6 +73,12 @@ def check_source(s):
         assert_ok(type(a)==int and type(z)==int and last<=a<z<=dur,
                   "Out-of-range/overlapping transcript timestamps")
         last=z
+    origin=s.get("transcript_origin")
+    assert_ok(origin in ("HUMAN_VERIFIED","ASR_UNVERIFIED","TEST_FIXTURE"),
+              "Transcript provenance must be explicit")
+    if origin=="TEST_FIXTURE":
+        assert_ok(s["project_id"].startswith("smoke_"),
+                  "Synthetic transcript allowed only in smoke_ fixture projects")
     assets=s.get("assets",[])
     assert_ok(isinstance(assets,list),"assets must be array")
     ids=[a.get("asset_id") for a in assets]
@@ -100,6 +106,16 @@ def check_source(s):
                       "A-roll clip timing has gaps, overlaps or bad duration")
             prior+=c["duration_ms"]
         assert_ok(abs(prior-dur)<=100,"Clip sequence does not match declared video duration")
+        clip_ids={c["clip_id"]:c for c in clips}
+        for segment in segments:
+            cid=segment["clip_id"]
+            assert_ok(cid in clip_ids,"Transcript clip_id FK not found: "+cid)
+            clip=clip_ids[cid]
+            start=clip["timeline_start_ms"]
+            assert_ok(start<=segment["start_ms"]<segment["end_ms"]<=
+                      start+clip["duration_ms"],
+                      "Transcript segment exceeds its linked clip boundary: "+
+                      segment["segment_id"])
     return {"status":"PASS","segments":len(segments),"assets":len(assets),
             "warnings":([] if s.get("frames") else
                         ["NO_VISUAL_EVIDENCE: face-safe headline placement must stay PENDING"]) +
@@ -109,13 +125,19 @@ def prompt(req):
     s=req["source"]
     return (
         "# Manual ChatGPT semantic editorial review\n\n"
-        "Read request.json via Remote Desktop Commander, and examine evidence frames where available.\n"
-        "Use project WTS/REN storytelling principles, but do not invent dialogue, assets, timestamps, rights or proof.\n"
-        "Build COMPLETE semantic idea beats (not single keywords). Every beat must cite real segment IDs.\n"
-        "Headline: decide wording and style; placement remains provisional until geometric/face QA.\n"
-        "B-roll: optional, only known VERIFIED asset IDs. Motion: optional. Cut guidance is NOT a millisecond cut.\n"
-        "ChatGPT fills a new response.json using response_template.json. Then run handoff.py submit.\n"
-        "No external model/API is called by Python. Public release and human review remain separately blocked.\n\n"
+        "Read local_read_index.json (if pulled), request.json, then EVERY context packet via Remote Desktop Commander.\n"
+        "Inspect actual reference frames where available. A filename alone is not visual inspection.\n"
+        "Use project WTS/REN storytelling rules: clear promise, viewer prediction, WANT/TAPI/SO, causal payoff.\n"
+        "Complete story_map in response_template.json, including factual limitations and causal_reason.\n"
+        "Source is authoritative: NEVER invent dialogue, claims, studied results, word times or rights.\n"
+        "Build COMPLETE non-overlapping meaning beats; cite real segment_id evidence; list justified exclusions.\n"
+        "Headline: you decide exact wording and NONE/AUTO/BOXED/OUTLINE, but positioning remains pixel-QA pending.\n"
+        "B-roll only from VERIFIED asset IDs and full speaking context, not isolated keywords. NONE is valid.\n"
+        "Motion optional: STATIC/SUBTLE/EMPHASIS. Avoid existing aggressive crop and source captions.\n"
+        "Cut guidance is not a waveform or millisecond-accurate trim; leave REVIEW if unsupported.\n"
+        "Set decision_source=CHATGPT_MANUAL and review_ref to a non-secret traceable chat label.\n"
+        "Write a new response.json, then submit through desktop_bridge on Windows or handoff.py remotely.\n"
+        "No external model/API is called by Python. Private semantic PASS never clears human/rights gates.\n\n"
         "Project: "+s["project_id"]+"\n"
         "Viewer: "+s["brief"]["viewer"]+"\n"
         "Goal: "+s["brief"]["goal"]+"\n"
@@ -157,6 +179,10 @@ def prepare(source_path,runtime):
                  "input_fingerprint":fingerprint,
                  "prepared_at":now(),"derived_from":["source","policy","media","frames"]}
         tpl={"schema_version":VERSION,"job_id":job,"input_fingerprint":fingerprint,"revision":1,
+             "decision_source":"CHATGPT_MANUAL_REQUIRED","review_ref":"REPLACE_WITH_CHAT_SESSION_REF",
+             "story_map":{key:"REPLACE WITH GROUNDED CONTEXT" for key in
+                          ("hook_promise","viewer_prediction","want","tapi","so",
+                           "payoff","causal_reason","factual_limitations")},
              "beats":[{"beat_id":"beat_01","start_segment_id":s["segments"][0]["segment_id"],
              "end_segment_id":s["segments"][0]["segment_id"],
              "evidence_segment_ids":[s["segments"][0]["segment_id"]],"story_role":"HOOK",
@@ -181,6 +207,24 @@ def check_response(r,req):
     assert_ok(r.get("schema_version")==VERSION and r.get("job_id")==req["job_id"] and
               r.get("input_fingerprint")==req["input_fingerprint"],"Wrong schema/job/input fingerprint")
     assert_ok(type(r.get("revision"))==int and r["revision"]>=1,"Invalid revision")
+    origin=s.get("transcript_origin")
+    expected_review="SYNTHETIC_TEST" if origin=="TEST_FIXTURE" else "CHATGPT_MANUAL"
+    assert_ok(r.get("decision_source")==expected_review,
+              "Decision must be attributed to "+expected_review)
+    assert_ok(isinstance(r.get("review_ref"),str) and
+              len(r["review_ref"].strip())>=8 and
+              "REPLACE_WITH" not in r["review_ref"],
+              "Missing explicit decision review reference")
+    story_map=r.get("story_map")
+    assert_ok(isinstance(story_map,dict),"ChatGPT must provide grounded WTS story_map")
+    for key in ("hook_promise","viewer_prediction","want","tapi","so","payoff",
+                "causal_reason","factual_limitations"):
+        value=story_map.get(key)
+        assert_ok(isinstance(value,str) and len(value.strip())>=8 and
+                  "REPLACE WITH" not in value.upper() and
+                  "FILL_FROM" not in value.upper() and
+                  "TODO" not in value.upper(),
+                  "Missing/unfilled story_map field: "+key)
     beats=r.get("beats")
     assert_ok(isinstance(beats,list) and beats,"No semantic beats")
     last=-1; seen=set(); covered=set()

@@ -66,7 +66,8 @@ def build_source(spec_file, out_dir, *, chunk_chars=4200):
               "source_in_ms":int(c.get("source_in_ms",0)),
               "duration_ms":int(c["duration_ms"]),
               "base_scale":float(c.get("base_scale",1.0)),
-              "captions_burned":bool(c.get("captions_burned",False))}
+              "captions_burned":bool(c.get("captions_burned",False)),
+              "source_sha256":file_sha(p)}
         must(clip["duration_ms"]>0 and clip["source_in_ms"]>=0 and
              1<=clip["base_scale"]<=1.5,"Invalid clip duration/base scale")
         clips.append(clip)
@@ -122,7 +123,8 @@ def build_source(spec_file, out_dir, *, chunk_chars=4200):
                              "segment_end":group[-1]["segment_id"],"sha256":file_sha(filepath)})
     expected_hashes={x["path"]:file_sha(x["path"]) for x in
                      refs+frames+media+packet_paths}
-    source={"project_id":s["project_id"],"task":"EDITORIAL_PLAN",
+    source={"builder_sha256":file_sha(__file__),
+            "project_id":s["project_id"],"task":"EDITORIAL_PLAN",
             "brief":s["brief"],"output":{"width":720,"height":1280,"fps":30},
             "video":{"duration_ms":int(s["video"]["duration_ms"]),
                      "source_rights":s["video"].get("source_rights","UNCLEARED")},

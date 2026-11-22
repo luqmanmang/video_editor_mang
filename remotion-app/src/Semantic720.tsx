@@ -13,9 +13,10 @@ type Zoom = {
   beat_id: string; mode: "SUBTLE" | "EMPHASIS";
   from_frame: number; duration_frames: number; max_relative_scale: number;
 };
+type CaptionCue = {start_frame: number; end_frame: number; text: string; segment_id: string};
 type Broll = {
   beat_id: string; src: string; from_frame: number;
-  duration_frames: number; muted: true;
+  duration_frames: number; muted: true; caption_cues: CaptionCue[];
 };
 export type SemanticTimeline = {
   schema_version: "1.0.0"; project_id: string;
@@ -93,6 +94,25 @@ const SemanticVideo: React.FC<SemanticProps> = ({timeline}) => {
           durationInFrames={b.duration_frames} name={"B-roll " + b.beat_id}>
           <OffthreadVideo src={staticFile(b.src)} muted
             style={{width: "100%", height: "100%", objectFit: "cover"}}/>
+          {b.caption_cues.map((cue) => (
+            <Sequence key={cue.segment_id}
+              from={cue.start_frame - b.from_frame}
+              durationInFrames={cue.end_frame - cue.start_frame}
+              layout="none">
+              <AbsoluteFill style={{
+                alignItems: "center", justifyContent: "flex-end",
+                paddingBottom: 150, pointerEvents: "none",
+              }}>
+                <div style={{
+                  maxWidth: "86%", padding: "9px 15px",
+                  fontSize: 28, fontWeight: 700, lineHeight: 1.24,
+                  fontFamily: "Arial, sans-serif", textAlign: "center",
+                  color: "#FFFFFF", background: "rgba(0,0,0,0.78)",
+                  borderRadius: 9, overflowWrap: "break-word",
+                }}>{cue.text}</div>
+              </AbsoluteFill>
+            </Sequence>
+          ))}
         </Sequence>
       ))}
     </AbsoluteFill>

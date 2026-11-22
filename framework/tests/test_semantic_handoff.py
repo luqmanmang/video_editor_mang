@@ -18,7 +18,7 @@ class HandoffTests(unittest.TestCase):
         self.media.write_bytes(b"TEST_MEDIA_NOT_A_REAL_VIDEO")
         self.source=self.p/"source.json"
         self.record={
-            "project_id":"kauthar_test",
+            "project_id":"smoke_kauthar_test","transcript_origin":"TEST_FIXTURE",
             "task":"EDITORIAL_PLAN",
             "brief":{"viewer":"BM TikTok viewers","goal":"Trust", "platform":"TikTok","language":"ms"},
             "output":{"width":720,"height":1280,"fps":30},
@@ -40,6 +40,17 @@ class HandoffTests(unittest.TestCase):
         return prepared,d
     def response(self,d):
         r=read(d/"response_template.json")
+        r["decision_source"]="SYNTHETIC_TEST"
+        r["review_ref"]="unit_test_synthetic_not_chatgpt"
+        r["story_map"]={
+            "hook_promise":"A synthetic test question about spending decisions",
+            "viewer_prediction":"The fixture viewer predicts one simple answer",
+            "want":"Fixture viewer wants to follow the example to its result",
+            "tapi":"Initial expectation is deliberately challenged by the test",
+            "so":"Second segment supplies the claimed alternative for test only",
+            "payoff":"The fabricated example returns to its opening question",
+            "causal_reason":"The test setup creates a question answered in the second cue",
+            "factual_limitations":"All dialogue is invented testing material, not real speech"}
         b=r["beats"][0]
         b["meaning"]="Viewer expects one answer but speaker reveals another"
         b["headline"]={"text":"INGATKAN BARANG MEWAH?","style_hint":"OUTLINE",

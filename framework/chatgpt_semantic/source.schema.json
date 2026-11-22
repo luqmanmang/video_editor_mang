@@ -8,7 +8,8 @@
     "brief",
     "output",
     "video",
-    "segments"
+    "segments",
+    "transcript_origin"
   ],
   "properties": {
     "project_id": {
@@ -172,6 +173,66 @@
     },
     "story": {
       "type": "object"
+    },
+    "transcript_origin": {
+      "enum": [
+        "HUMAN_VERIFIED",
+        "ASR_UNVERIFIED",
+        "TEST_FIXTURE"
+      ]
+    },
+    "clips": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "clip_id",
+          "path",
+          "src",
+          "source_sha256",
+          "timeline_start_ms",
+          "source_in_ms",
+          "duration_ms",
+          "base_scale",
+          "captions_burned"
+        ],
+        "properties": {
+          "clip_id": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "src": {
+            "type": "string"
+          },
+          "source_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "timeline_start_ms": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "source_in_ms": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "duration_ms": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "base_scale": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 1.5
+          },
+          "captions_burned": {
+            "type": "boolean"
+          }
+        }
+      }
     }
   }
 }

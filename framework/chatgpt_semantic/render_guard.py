@@ -8,7 +8,7 @@ import subprocess
 import sys
 
 from .handoff import read, file_sha, save, assert_ok
-from .timeline_compiler import safe_src
+from .timeline_compiler import safe_src, compile_job
 
 FPS=30
 
@@ -19,6 +19,13 @@ def probe(file):
     return json.loads(run.stdout)
 
 def validate(props_path, app_dir, output):
+    props_path=Path(props_path).resolve()
+    # Require the exact immutable output from the current validated decision,
+    # not arbitrary JSON that happens to say render_ready=true.
+    canonical=compile_job(props_path.parent.parent)
+    assert_ok(Path(canonical["path"]).resolve()==props_path and
+              canonical["sha256"]==file_sha(props_path),
+              "Render props are not the current immutable validated timeline")
     props=read(props_path)
     t=props["timeline"]
     assert_ok(t["export"]=={"width":720,"height":1280,"fps":30,"codec":"h264","audio_codec":"aac"},
@@ -38,19 +45,25 @@ def validate(props_path, app_dir, output):
         src=safe_src(c["src"])
         path=(public/src).resolve()
         assert_ok(path.is_relative_to(public) and path.is_file(),"Missing A-roll media: "+src)
-        video=next((v for v in probe(path)["streams"] if v["codec_type"]=="video"),None)
+        assert_ok(file_sha(path)==c.get("source_sha256"),
+                  "A-roll media content changed since ChatGPT review: "+src)
+        metadata=probe(path)
+        video=next((v for v in metadata["streams"] if v["codec_type"]=="video"),None)
         assert_ok(video is not None,"A-roll source has no video: "+src)
         frames=c["trim_before_frames"]+c["duration_frames"]
-        fmt=probe(path)["format"]
+        fmt=metadata["format"]
         assert_ok(float(fmt["duration"])+0.06 >= frames/FPS,
                   "Clip trim exceeds source media duration: "+src)
-        assert_ok(any(v["codec_type"]=="audio" for v in probe(path)["streams"]),
+        assert_ok(any(v["codec_type"]=="audio" for v in metadata["streams"]),
                   "A-roll has no original audio: "+src)
     assert_ok(covered==t["duration_in_frames"],"Timeline duration mismatch")
     for b in t.get("brolls",[]):
         src=safe_src(b["src"])
         path=(public/src).resolve()
         assert_ok(path.is_relative_to(public) and path.is_file(),"Missing B-roll: "+src)
+        assert_ok(file_sha(path)==b.get("source_sha256"),
+                  "B-roll media changed since ChatGPT review: "+src)
+        assert_ok(b.get("caption_cues"),"B-roll has no validated spoken caption cues")
         assert_ok(float(probe(path)["format"]["duration"])+0.06 >= b["duration_frames"]/FPS,
                   "B-roll shorter than semantic beat: "+src)
     return {"clips":len(t["clips"]),"brolls":len(t.get("brolls",[])),
@@ -84,12 +97,15 @@ def render(props, app, out, *, dry_run=False):
     decode=subprocess.run(["ffmpeg","-nostats","-v","error","-i",str(out),"-f","null","-"],
                           capture_output=True,text=True)
     assert_ok(decode.returncode==0,"Full video decode failed: "+decode.stderr[-800:])
-    result_data={"status":"TECHNICAL_PASS_PRIVATE_ONLY","output":str(out),
+    origin=read(props)["timeline"]["provenance"].get("transcript_origin")
+    result_data={"status":"TECHNICAL_PASS_SYNTHETIC_ONLY" if origin=="TEST_FIXTURE"
+                 else "TECHNICAL_PASS_PRIVATE_ONLY","output":str(out),
                  "sha256":file_sha(out),"bytes":out.stat().st_size,
                  "duration_sec":float(info["format"]["duration"]),
                  "width":720,"height":1280,"fps":30,"video_codec":"h264",
                  "audio_codec":"aac","full_decode":"PASS",
                  "creative_approval":"PENDING","original_source_rights":"UNCLEARED",
+                 "transcript_origin":origin,
                  "props_sha256":checks["props_sha256"]}
     save(report,result_data)
     print("GATE:resolution_720p=PASS",flush=True)

@@ -1,90 +1,128 @@
-# ChatGPT Semantic Handoff v1
+# ChatGPT-in-the-loop Semantic Production v1.1
 
-**Purpose:** Feed curated transcript/asset/frame facts to the current ChatGPT
-conversation through Remote Desktop Commander, then accept a constrained
-semantic decision returned by ChatGPT. No external model, API key, background
-task, artificial autonomous-agent claim or hidden LLM call.
+ChatGPT **in this conversation** makes semantic editorial decisions. Python is
+a deterministic packet builder, lineage checker, validator, compiler, and
+render guard. No API key, no other LLM, no autonomous ChatGPT background call.
 
-## Storage layout
+## Code (GitHub feature branch)
 
-Public code only (this GitHub repo):
-- chatgpt_semantic/handoff.py — prepare, submit, inspect, deterministic DQ
-- chatgpt_semantic/editorial_policy.md — versioned editorial rules and input fingerprint
-- chatgpt_semantic/README.md — operator contract
+- handoff.py — private request, WTS decision validation, immutable revisions.
+- packet_builder.py — true transcript + clip/source documents -> deterministic
+  context packets. Does NOT infer any word, dialogue, evidence or story beat.
+- desktop_bridge.py — Windows pulls private context packets from Codespace,
+  ChatGPT reads with Remote Desktop Commander, and the bridge pushes the authored
+  response back for validation on the original Codespace media.
+- timeline_compiler.py — validated semantic beats -> Remotion inputProps JSON.
+- render_guard.py — preflight hash/clip/audio/B-roll checks and enforced native
+  720x1280@30fps H.264/AAC + full decode/QA.
+- smoke.py — synthetic-only integration smoke. Its outputs are not real speech
+  or evidence of creative-quality approval.
+- editorial_policy.md, source.schema.json, response.schema.json — contracts.
+- remotion-app/src/Semantic720.tsx — 720p renderer, speaking-video timing,
+  optional controlled zoom, spoken-text cues over B-roll in private preview.
 
-Private Windows runtime OUTSIDE the public Git repo:
-- D:\Thread Automation\Video_Clipping_Studio\semantic_runtime\jobs\sem_<fingerprint>\
-  - request.json — immutable input (private brief, transcript, asset/frame refs)
-  - lineage.json — source/policy/media SHA-256, origin paths, timestamp
-  - source_dq.json — input validation results and warnings
-  - analysis_prompt.md — instructions for the ChatGPT analyst
-  - response_template.json — structurally valid starting response; replace dummy meaning
-  - events.jsonl — append-only actions and timestamps
-  - state.json — atomic latest status/pointer, not append-only
-  - decisions\revision_001.json — immutable candidate returned by ChatGPT
-  - decisions\revision_001_dq.json — corresponding validation report
-- A sample file/user footage must never be committed into this public repo.
+## Private storage
 
-## Input schema (source.json, private)
+- Windows: D:\Thread Automation\Video_Clipping_Studio\semantic_runtime\
+- Codespace: /workspaces/video_editor_mang/framework/.runtime/<project>/
+- Do not commit source media, transcript, prompts or response decisions.
+- Local bridge snapshot + remote job lineage can survive closing the browser.
+- Codespace stop interrupts active render; deletion loses remote data if not
+  backed up. Windows bridge copy does NOT replicate full source videos.
 
-Required:
-- project_id: stable unique project slug
-- task: EDITORIAL_PLAN
-- brief: viewer, goal, platform, language (all nonempty strings)
-- output: width=720, height=1280, fps=30
-- video: duration_ms as integer
-- segments: ordered contiguous or gapped transcript segments, each with
-  segment_id, clip_id, start_ms, end_ms, text (source timestamps)
-Optional:
-- story: existing documented WANT/TAPI/SO, credibility limits
-- assets: [{asset_id, license_status, source_url, ...}]
-- media: [{path: absolute existing file path}]
-- frames: [{path: absolute existing image path, at_ms: integer}]
+## Canonical spec (private, verified source required)
 
-Source frame paths and file hashes are evidence references, not a claim that
-the model saw those frames. Read them through Remote Desktop Commander as needed.
+The --spec JSON must contain:
+- project_id, brief {viewer,goal,platform,language},
+- video {duration_ms,source_rights},
+- transcript_path pointing to transcript JSON with
+  transcript_origin=HUMAN_VERIFIED or ASR_UNVERIFIED and segments:
+  {segment_id,clip_id,start_ms,end_ms,text}, globally sorted.
+  TEST_FIXTURE is only for projects beginning smoke_.
+- clips: {clip_id,path,static_src,timeline_start_ms,source_in_ms,
+  duration_ms,base_scale,captions_burned}
+- optional stock_manifest path, static_root, story_plan path and sampled
+  frames [{path,at_ms}].
+The builder hashes source videos, transcript, stock, frame evidence and the
+versioned packet builder itself. No transcript -> BLOCKED_TRANSCRIPT.
 
-## Manual ChatGPT workflow
+## Manual workflow (ChatGPT + Remote Desktop Commander)
 
-1. An authorized local Python job creates the source.json input using recorded
-   transcript segments, verified source media/frames and approved video brief.
-2. Trigger:
-   py -3 "D:\Thread Automation\Video_Clipping_Studio\repo\framework\chatgpt_semantic\handoff.py" prepare --source "D:\some-private-source.json"
-3. Assistant uses Remote Desktop Commander to read generated analysis_prompt.md,
-   request.json and actual frame files, then reasons in THIS chat.
-4. Assistant writes a new response.json alongside the job based on
-   response_template.json. Each beat references real segment IDs and may choose
-   NONE for headline/B-roll/zoom. An omitted segment needs an explicit
-   excluded_segments entry with a reason.
-5. Assistant triggers:
-   py -3 "D:\Thread Automation\Video_Clipping_Studio\repo\framework\chatgpt_semantic\handoff.py" submit --job-id sem_... --response "D:\...\response.json"
-6. The validator verifies schema, source/media/policy hashes, evidence references,
-   non-overlapping segments, exclusions, asset license, revision, idempotency.
-7. Only status VALIDATED_FOR_PRIVATE_PREVIEW is output. Another execution step
-   converts this validated decision to the canonical timeline.json and passes
-   face-safe positioning, waveform cut and render checks (NOT implemented here).
-8. When source, media, frames or policy change, prepare a NEW job. When ChatGPT
-   deliberately revises a decision on the same input, increment revision by 1.
+Commands run on the authorized device, not inside a public GitHub issue.
 
-## Idempotency, RCA and edge cases
+1. In Codespace repo root:
+   python3 -m framework.chatgpt_semantic.packet_builder --spec framework/.runtime/<project>/spec.json --out framework/.runtime/<project>/context
 
-- job_id = SHA-256(version + source bytes hash + policy hash + media/frame hashes)
-- Identical prepare => REUSED, no loss of decisions.
-- Identical response same revision => REUSED_VALIDATED.
-- Different response same revision => HARD FAIL (revision conflict).
-- New response revision must be last revision + 1.
-- Source, policy or evidence changed before submit => HARD FAIL (stale).
-- Hallucinated asset/segment IDs, unlicensed selected B-roll, missing dialogue
-  coverage and time overlap => HARD FAIL.
-- Append-only events, atomic state writes, best-effort exclusive lock file.
-  Interrupted writes retain old state; stale lock after process crash requires
-  operator inspection rather than unsafe automatic deletion.
-- User rights, full video review, face positioning, and final publication are
-  NOT implied by the validator's semantic PASS.
+2. Generate job from the exact source packet (one run_id/fingerprint):
+   python3 -m framework.chatgpt_semantic.handoff --runtime framework/.runtime/<project>/runtime prepare --source framework/.runtime/<project>/context/source.json
 
-## Progress scope
+3. On Windows, pull from Codespace via Remote Desktop Commander:
+   py -3 -m framework.chatgpt_semantic.desktop_bridge pull --codespace <codespace-name> --remote-job-dir /workspaces/video_editor_mang/framework/.runtime/<project>/runtime/jobs/sem_<fingerprint-prefix>
 
-This module is a working **handoff and validation foundation**, not yet
-connected to the Remotion timeline generator or the dashboard. It does not
-guarantee every future ChatGPT session will automatically call the connector:
-the current user must direct ChatGPT and the connector must be available.
+   Run from D:\Thread Automation\Video_Clipping_Studio\repo.
+   Context arrives in D:\Thread Automation\Video_Clipping_Studio\semantic_runtime\jobs\<job_id>\
+   Read analysis_prompt.md, request.json, local_read_index.json,
+   context_packets/*.json and actual frame images (when available).
+
+4. ChatGPT manually reasons over complete dialogue and frames, then writes a
+   new response.json inside that local job folder with:
+   - schema_version 1.1.0, job_id and exact input_fingerprint
+   - decision_source CHATGPT_MANUAL, review_ref trace label
+   - story_map: hook_promise, viewer_prediction, want, tapi, so, payoff,
+     causal_reason, factual_limitations
+   - ordered, fully covered semantic beats with real evidence_segment_ids,
+     headline choice, broll asset ID (optional), motion (optional), cut guidance
+   - excluded_segments only with explicit justified reasons.
+   The template contains deliberately invalid placeholders and MUST be filled.
+
+5. Submit local response to the original Codespace and mirror validated result:
+   py -3 -m framework.chatgpt_semantic.desktop_bridge submit --local-job "<local-job-dir>" --response "<local-job-dir>\response.json"
+
+6. In Codespace, after source lineage still matches:
+   python3 -m framework.chatgpt_semantic.timeline_compiler --job-dir framework/.runtime/<project>/runtime/jobs/<job_id>
+
+7. Only when compile says render_ready=true:
+   python3 -m framework.chatgpt_semantic.render_guard --props "<path-returned-by-compiler>" --app remotion-app --out framework/.runtime/<project>/review_720.mp4
+
+Use the local studio_dashboard.py tracked runner to launch/monitor remote stages
+where possible. Existing browser tab refreshes every 2 seconds; new jobs must
+not open additional dashboard tabs.
+
+## QA & recovery behavior
+
+- Input SHA-256 includes source JSON, policy, validator/schema, source documents,
+  all referenced media, frames and context packets. Changed data => new job.
+- Repeated prepare with identical fingerprint => REUSED.
+- Repeated identical semantic decision revision => REUSED_VALIDATED.
+- Different contents at same revision => HARD FAIL; increment revision.
+- File changed after ChatGPT analysis but before submit => HARD FAIL.
+- Frame geometry not measured => headline request marked PENDING and render
+  blocked. No masking over embedded source headline by default.
+- TRIM_SILENCE without waveform and independently reviewed boundaries =>
+  render blocked. Semantic suggestions are NOT sample-accurate cuts.
+- B-roll uses actual verified asset IDs and entire semantic beat. Rendering
+  with B-roll requires human-verified short source captions; long captions,
+  unverified ASR or missing speech cues => render blocked.
+- Motion beyond already tight >110% base crop is suppressed, otherwise preview
+  motion stays pending face-framing review. Never force a zoom on every sentence.
+- Excluded source speech requires a separately approved cut plan; otherwise
+  render blocked (do not silently drop or keep content differently than planned).
+- No empty final folder is populated until publication rights + human review.
+- Render guard refuses wrong bitrate-independent pixel size, source-media hash
+  drift, missing audio, insufficient source duration, 1080p props, or full
+  decode failures. Full encode is checked, not treated as creative approval.
+
+## Known limitations (do not claim as DONE)
+
+- ChatGPT invocation is manual per user prompt. This module never wakes or
+  sends work to ChatGPT on its own.
+- No verified Kauthar word-level transcript was found in current local studio.
+  The actual Kauthar semantic pilot is BLOCKED_TRANSCRIPT until evidence exists.
+- ASR_UNVERIFIED transcripts require human verification for B-roll captions;
+  do not use a scene summary as actual spoken text.
+- Headline pixel positions, background clutter scores, face/skin safe zones,
+  source burned-in captions and true audio millisecond cut boundaries still
+  require separate measured QA modules and/or human checks.
+- Automatic WTS causal logic is NOT provable merely by JSON schema. ChatGPT
+  and a human reviewer assess relevance and credibility separately.
+- Publishing remains blocked for uncleared original creator footage.

@@ -7,11 +7,14 @@
     "job_id",
     "input_fingerprint",
     "revision",
-    "beats"
+    "beats",
+    "decision_source",
+    "review_ref",
+    "story_map"
   ],
   "properties": {
     "schema_version": {
-      "const": "1.0.0"
+      "const": "1.1.0"
     },
     "job_id": {
       "type": "string",
@@ -162,6 +165,63 @@
           "reason": {
             "type": "string"
           }
+        }
+      }
+    },
+    "decision_source": {
+      "enum": [
+        "CHATGPT_MANUAL",
+        "SYNTHETIC_TEST"
+      ]
+    },
+    "review_ref": {
+      "type": "string",
+      "minLength": 8
+    },
+    "story_map": {
+      "type": "object",
+      "required": [
+        "hook_promise",
+        "viewer_prediction",
+        "want",
+        "tapi",
+        "so",
+        "payoff",
+        "causal_reason",
+        "factual_limitations"
+      ],
+      "properties": {
+        "hook_promise": {
+          "type": "string",
+          "minLength": 8
+        },
+        "viewer_prediction": {
+          "type": "string",
+          "minLength": 8
+        },
+        "want": {
+          "type": "string",
+          "minLength": 8
+        },
+        "tapi": {
+          "type": "string",
+          "minLength": 8
+        },
+        "so": {
+          "type": "string",
+          "minLength": 8
+        },
+        "payoff": {
+          "type": "string",
+          "minLength": 8
+        },
+        "causal_reason": {
+          "type": "string",
+          "minLength": 8
+        },
+        "factual_limitations": {
+          "type": "string",
+          "minLength": 8
         }
       }
     }
