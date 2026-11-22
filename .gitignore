@@ -1,4 +1,4 @@
-# Never commit private or unlicensed media / personal data
+# Keep third-party footage, render outputs and private media outside public Git
 node_modules/
 **/node_modules/
 .env
@@ -26,3 +26,4 @@ renders/
 source_videos/
 scratch/
 tmp/
+remotion-app/public/
