@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Video Studio Semantic Response v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "job_id",
+    "input_fingerprint",
+    "revision",
+    "beats"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "job_id": {
+      "type": "string",
+      "pattern": "^sem_[0-9a-f]{20}$"
+    },
+    "input_fingerprint": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "beats": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "beat_id",
+          "start_segment_id",
+          "end_segment_id",
+          "evidence_segment_ids",
+          "story_role",
+          "meaning",
+          "headline",
+          "broll",
+          "motion",
+          "cut_guidance"
+        ],
+        "properties": {
+          "beat_id": {
+            "type": "string"
+          },
+          "start_segment_id": {
+            "type": "string"
+          },
+          "end_segment_id": {
+            "type": "string"
+          },
+          "evidence_segment_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "story_role": {
+            "enum": [
+              "HOOK",
+              "WANT",
+              "TAPI",
+              "SO",
+              "PAYOFF",
+              "CONTEXT"
+            ]
+          },
+          "meaning": {
+            "type": "string",
+            "minLength": 8
+          },
+          "headline": {
+            "type": "object",
+            "required": [
+              "text",
+              "style_hint",
+              "reason"
+            ],
+            "properties": {
+              "text": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "style_hint": {
+                "enum": [
+                  "NONE",
+                  "AUTO",
+                  "BOXED",
+                  "OUTLINE"
+                ]
+              },
+              "reason": {
+                "type": "string"
+              }
+            }
+          },
+          "broll": {
+            "type": "object",
+            "required": [
+              "asset_id",
+              "reason"
+            ],
+            "properties": {
+              "asset_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "reason": {
+                "type": "string"
+              }
+            }
+          },
+          "motion": {
+            "type": "object",
+            "required": [
+              "mode",
+              "reason"
+            ],
+            "properties": {
+              "mode": {
+                "enum": [
+                  "STATIC",
+                  "SUBTLE",
+                  "EMPHASIS"
+                ]
+              },
+              "reason": {
+                "type": "string"
+              }
+            }
+          },
+          "cut_guidance": {
+            "enum": [
+              "KEEP",
+              "TRIM_SILENCE",
+              "REVIEW"
+            ]
+          }
+        }
+      }
+    },
+    "excluded_segments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "segment_id",
+          "reason"
+        ],
+        "properties": {
+          "segment_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
