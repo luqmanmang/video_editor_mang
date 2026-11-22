@@ -78,13 +78,28 @@ def check_source(s):
     ids=[a.get("asset_id") for a in assets]
     assert_ok(len(ids)==len(set(ids)) and all(isinstance(x,str) and x for x in ids),
               "Invalid/duplicate asset_id")
-    for section in ("media","frames"):
+    for section in ("media","frames","source_documents","context_packets"):
         assert_ok(isinstance(s.get(section,[]),list),section+" must be array")
         for item in s.get(section,[]):
             assert_ok(isinstance(item,dict) and isinstance(item.get("path"),str)
                       and item["path"].strip(),"Missing evidence path in "+section)
     for f in s.get("frames",[]):
         assert_ok(type(f.get("at_ms"))==int and 0<=f["at_ms"]<=dur,"Invalid frame timestamp")
+    clips=s.get("clips",[])
+    assert_ok(isinstance(clips,list),"clips must be an array")
+    if clips:
+        unique=set(); prior=0
+        for c in clips:
+            cid=c.get("clip_id")
+            assert_ok(isinstance(cid,str) and cid not in unique and cid,
+                      "Bad/duplicate clip_id")
+            unique.add(cid)
+            assert_ok(type(c.get("timeline_start_ms"))==int and
+                      type(c.get("duration_ms"))==int and
+                      c["duration_ms"]>0 and c["timeline_start_ms"]==prior,
+                      "A-roll clip timing has gaps, overlaps or bad duration")
+            prior+=c["duration_ms"]
+        assert_ok(abs(prior-dur)<=100,"Clip sequence does not match declared video duration")
     return {"status":"PASS","segments":len(segments),"assets":len(assets),
             "warnings":([] if s.get("frames") else
                         ["NO_VISUAL_EVIDENCE: face-safe headline placement must stay PENDING"]) +
@@ -110,11 +125,15 @@ def prompt(req):
 
 def prepare(source_path,runtime):
     path=Path(source_path).resolve(); s=read(path); q=check_source(s)
-    files=[Path(x["path"]).resolve() for x in s.get("media",[])+s.get("frames",[])]
+    files=[Path(x["path"]).resolve() for key in
+           ("media","frames","source_documents","context_packets") for x in s.get(key,[])]
     hashes={}
     for p in files:
         assert_ok(p.is_file() and p.stat().st_size>0,"Missing/empty evidence: "+str(p))
         hashes[str(p)]=file_sha(p)
+    for path,expected in s.get("expected_evidence_sha256",{}).items():
+        assert_ok(path in hashes and hashes[path]==expected,
+                  "Evidence changed after packet build; regenerate source: "+path)
     policy=HERE/"editorial_policy.md"
     module_hashes={str(p):file_sha(p) for p in
                    (HERE/"handoff.py",HERE/"source.schema.json",HERE/"response.schema.json")}
