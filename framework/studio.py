@@ -216,7 +216,8 @@ def main():
         if opts.output:
             save_json(opts.output, result)
         if isinstance(result, (dict, list)):
-            result = {"status": "OK", "count": len(result), "path": opts.output}
+            total = len(result.get("components", [])) if isinstance(result, dict) else len(result)
+            result = {"status": "OK", "count": total, "path": opts.output}
     print(json.dumps(result, indent=2, ensure_ascii=False))
     if result.get("status") == "FAIL":
         sys.exit(2)
