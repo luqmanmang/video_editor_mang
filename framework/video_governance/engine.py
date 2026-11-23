@@ -331,6 +331,18 @@ def validate(con, project, stage, path):
         require(obj.get("status")=="PASS" and
                 all(obj.get("checks",{}).get(k)=="PASS" for k in
                     ("decode","video","audio","captions")),"TECH_QA_NOT_PASSED")
+        report_path=Path(obj.get("qa_report_path",""))
+        require(report_path.is_file() and
+                sha(report_path)==obj.get("qa_report_sha256"),
+                "TECH_QA_NATIVE_REPORT_MISSING_OR_CHANGED")
+        native=read_json(report_path)
+        require(native.get("videoSha256")==render_sha(con,project),
+                "TECH_QA_NATIVE_REPORT_STALE_RENDER")
+        require(native.get("verdict")=="PASS"
+                and native.get("layers",{}).get("technical",{}).get("status")=="pass"
+                and "technical" in native.get("coverage",{}).get("completed",[])
+                and not native.get("coverage",{}).get("missingRequired",[]),
+                "TECH_QA_NATIVE_REPORT_NOT_PASS")
     if stage=="STORY_QA":
         require(obj.get("story_sha256")==stage_row(con,project,"STORY_LOCK")["artifact_sha"],
                 "STORY_QA_STALE_STORY")

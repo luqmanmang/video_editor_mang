@@ -30,6 +30,9 @@ def load_manifest(path):
     head=subprocess.run(["git","-C",str(root),"rev-parse","HEAD"],
                         capture_output=True,text=True,check=True).stdout.strip()
     require(head==obj["upstream_commit"],"UPSTREAM_GIT_COMMIT_DRIFT")
+    dirty=subprocess.run(["git","-C",str(root),"status","--porcelain",
+                          "--untracked-files=no"],text=True,capture_output=True,check=True)
+    require(not dirty.stdout.strip(),"UPSTREAM_TRACKED_FILES_DIRTY")
     return obj
 
 

@@ -90,11 +90,18 @@ class TestGovernance(unittest.TestCase):
                      "keep","v1")
         return render_id
 
+    def tech_receipt(self,video):
+        native=self.write("native_qa.json",{
+            "videoSha256":sha(video),"verdict":"PASS",
+            "layers":{"technical":{"status":"pass"}},
+            "coverage":{"completed":["technical"],"missingRequired":[]}
+        })
+        return {"render_sha256":sha(video),"status":"PASS",
+                "checks":{x:"PASS" for x in ("decode","video","audio","captions")},
+                "qa_report_path":str(native),"qa_report_sha256":sha(native)}
+
     def qa_to_release(self, video, story):
-        self.stage("TECH_QA",self.write("tech.json",{
-            "render_sha256":sha(video),"status":"PASS",
-            "checks":{x:"PASS" for x in ("decode","video","audio","captions")}
-        }))
+        self.stage("TECH_QA",self.write("tech.json",self.tech_receipt(video)))
         self.stage("STORY_QA",self.write("story_qa.json",{
             "render_sha256":sha(video),"story_sha256":sha(story),"status":"PASS",
             "checks":{x:"PASS" for x in ("hook_payoff","wts_causality",
@@ -152,6 +159,19 @@ class TestGovernance(unittest.TestCase):
         with self.assertRaisesRegex(GateError,"VARIANT_ID_IMMUTABLE"):
             add_variant(self.con,"p","v1","a"*64,"c"*64)
 
+    def test_native_qa_warning_cannot_be_forged_as_pass(self):
+        video,_=self.establish_to_render()
+        self.map_all(video)
+        receipt=self.tech_receipt(video)
+        native=self.write("native_qa.json",{
+            "videoSha256":sha(video),"verdict":"PASS_WITH_WARNINGS",
+            "layers":{"technical":{"status":"warn"}},
+            "coverage":{"completed":["technical"],"missingRequired":[]}
+        })
+        receipt["qa_report_sha256"]=sha(native)
+        with self.assertRaisesRegex(GateError,"TECH_QA_NATIVE_REPORT_NOT_PASS"):
+            self.stage("TECH_QA",self.write("tech.json",receipt))
+
     def test_qa_receipt_stale_render_blocks(self):
         video,story=self.establish_to_render()
         self.map_all(video)
@@ -169,10 +189,7 @@ class TestGovernance(unittest.TestCase):
             self.stage("DELIVERY",video)
 
     def qa_to_review_only(self,video,story,visibility="PRIVATE_REVIEW"):
-        self.stage("TECH_QA",self.write("tech.json",{
-            "render_sha256":sha(video),"status":"PASS",
-            "checks":{x:"PASS" for x in ("decode","video","audio","captions")}
-        }))
+        self.stage("TECH_QA",self.write("tech.json",self.tech_receipt(video)))
         self.stage("STORY_QA",self.write("story_qa.json",{
             "render_sha256":sha(video),"story_sha256":sha(story),"status":"PASS",
             "checks":{x:"PASS" for x in ("hook_payoff","wts_causality",
@@ -186,10 +203,7 @@ class TestGovernance(unittest.TestCase):
     def test_no_human_approval_blocks(self):
         video,story=self.establish_to_render()
         self.map_all(video)
-        self.stage("TECH_QA",self.write("tech.json",{
-            "render_sha256":sha(video),"status":"PASS",
-            "checks":{x:"PASS" for x in ("decode","video","audio","captions")}
-        }))
+        self.stage("TECH_QA",self.write("tech.json",self.tech_receipt(video)))
         self.stage("STORY_QA",self.write("story_qa.json",{
             "render_sha256":sha(video),"story_sha256":sha(story),"status":"PASS",
             "checks":{x:"PASS" for x in ("hook_payoff","wts_causality",

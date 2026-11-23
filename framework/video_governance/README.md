@@ -29,7 +29,10 @@ This prevents silently selecting a skill and then omitting its execution.
 The master video-edit-pipeline skill is an instruction-level orchestrator, not an
 executable process; it is required in EDIT_PLAN and verified via the pinned registry.
 RENDER: actual FFprobe-readable video containing video + audio.
-TECH_QA: render_sha256, status PASS and checks decode/video/audio/captions PASS.
+TECH_QA: render_sha256, status PASS, checks decode/video/audio/captions PASS,
+qa_report_path + qa_report_sha256. Original native video-qa JSON must have
+matching videoSha256, technical layer pass and verdict PASS (warnings block
+strict release; never counterfeit an original QA result).
 STORY_QA: story_sha256, render_sha256, status PASS and checks hook_payoff,
 wts_causality, beat_coverage, factual_integrity PASS (reviewer evidence required).
 HUMAN_REVIEW: render_sha256, human_approved true, reviewer, reviewed_at.
@@ -63,5 +66,8 @@ Follow docs/MRPAIDSOCIAL_GOVERNANCE_ADOPTION.md for limitations and gates.
 
 ## Basic verification
 python3 -m unittest framework.video_governance.test_engine -v
+python3 -m framework.video_governance.skill_bridge --registry framework/.runtime/mrpaidsocial_skills_manifest.json list
+python3 -m framework.video_governance.skill_bridge --registry framework/.runtime/mrpaidsocial_skills_manifest.json show reel-recut
+python3 -m framework.video_governance.smoke_native
 python3 framework/video_governance/router.py --upstream /workspaces/_video_edit_upstream/mrpaidsocial-video-editor-agent --output framework/.runtime/mrpaidsocial_skills_manifest.json
 python3 -m framework.video_governance.engine --db framework/.runtime/governance.sqlite init pilot_01 --story-version v1

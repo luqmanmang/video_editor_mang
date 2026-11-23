@@ -99,9 +99,12 @@ def smoke():
         })
         run_stage(con,project,"EDIT_PLAN",plan,[sys.executable,"-c","pass"])
         edit_receipt=work/"edit_receipt.json"
-        run_stage(con,project,"EDIT",edit_receipt,
-                  [sys.executable,"-m","framework.video_governance.smoke_native",
-                   "--build-edit",str(work),str(upstream),sha(plan)])
+        # Exercise the real ChatGPT-oriented skill bridge, not only direct engine calls.
+        run([sys.executable,"-m","framework.video_governance.skill_bridge",
+             "--registry",str(registry),"run","--db",str(work/"governance.sqlite"),
+             project,"EDIT","reel-recut",str(edit_receipt),"--",
+             sys.executable,"-m","framework.video_governance.smoke_native",
+             "--build-edit",str(work),str(upstream),sha(plan)])
         render=work/"render.mp4"
         run_stage(con,project,"RENDER",render,
                   [sys.executable,"-c","import shutil,sys; shutil.copyfile(sys.argv[1],sys.argv[2])",

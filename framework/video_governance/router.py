@@ -72,6 +72,9 @@ def discover(root):
         " removed=" + str(sorted(set(SKILLS) - names)))
     head = subprocess.run(["git","-C",str(root),"rev-parse","HEAD"],
                           text=True,capture_output=True,check=True).stdout.strip()
+    dirty = subprocess.run(["git","-C",str(root),"status","--porcelain",
+                            "--untracked-files=no"],text=True,capture_output=True,check=True)
+    assert not dirty.stdout.strip(), "UPSTREAM_TRACKED_FILES_DIRTY"
     require_core = {key: probe(key) for key in ("node","python3","ffmpeg","ffprobe")}
     environment = {
         "platform": os.name,
