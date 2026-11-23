@@ -196,10 +196,11 @@ def status_payload():
     receipt=read_json(receipts[0],{}) if receipts else {}
     cs_items=receipt.get("files",{}) if isinstance(receipt,dict) else {}
     cs_folder=Path(receipt.get("output_dir","")) if isinstance(receipt,dict) else Path("")
+    cs_count=len(cs_items) if isinstance(cs_items,dict) else 0
     cs_ready=bool(
         receipt.get("status")=="VERIFIED_SHA256_AT_DELIVERY"
-        and receipt.get("count")==5
-        and isinstance(cs_items,dict) and len(cs_items)==5
+        and receipt.get("count")==cs_count
+        and 1<=cs_count<=20
         and cs_folder.is_dir()
         and all(
             (cs_folder/v.get("filename","")).is_file()
@@ -217,7 +218,9 @@ def status_payload():
         "existing": {
             "project_id": proj.get("project_id"),
             "phase": "HUMAN_REVIEW" if (cs_ready or batch_ready or ab_ready) else proj.get("phase", "UNKNOWN"),
-            "active_variant": ("CODESPACE_5_VERIFIED_MP4_PRIVATE" if cs_ready
+            "active_variant": (("CODESPACE_MIXUE_SEMANTIC_V2_PRIVATE"
+                                if "mixue_semantic_v2" in cs_items
+                                else f"CODESPACE_{cs_count}_VERIFIED_MP4_PRIVATE") if cs_ready
                                else ("KAUTHAR_5_DISTINCT_720_PRIVATE" if batch_ready
                                else ("KAUTHAR_HEADLINE_A_B_720_PRIVATE" if ab_ready
                                else proj.get("active_variant", "UNKNOWN")))),
@@ -227,7 +230,7 @@ def status_payload():
                            else qa.get("creative_status", "UNKNOWN"),
             "qa_duration": None if cs_ready else qa.get("duration"),
             "video_exists": cs_ready or batch_ready or ab_ready or FINAL_VIDEO.is_file() or V31_VIDEO.is_file(),
-            "video_resolution": ("720x1280 (5 Codespace SHA-verified MP4s)" if cs_ready
+            "video_resolution": (f"720x1280 ({cs_count} Codespace SHA-verified MP4{'s' if cs_count != 1 else ''})" if cs_ready
                                  else ("720x1280 (5 distinct review videos)" if batch_ready
                                  else ("720x1280 (2 review variants)" if ab_ready
                                  else ("1080x1920" if FINAL_VIDEO.is_file() else "720x1280")))),
