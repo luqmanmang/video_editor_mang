@@ -53,6 +53,11 @@ def build_source(spec_file, out_dir, *, chunk_chars=4200):
 
     refs=[{"path":str(spec_file),"kind":"project_spec"},
           {"path":str(transcript_path),"kind":"transcript"}]
+    for original in s.get("extra_evidence_paths",[]):
+        evidence=resolve_path(original,base)
+        must(evidence.is_file() and evidence.stat().st_size>0,
+             "Extra source evidence missing: "+str(evidence))
+        refs.append({"path":str(evidence),"kind":"original_source_evidence"})
     frames=[{"path":str(resolve_path(f["path"],base)),"at_ms":int(f["at_ms"])}
             for f in s.get("frames",[])]
     media=[]

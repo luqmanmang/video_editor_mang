@@ -114,7 +114,7 @@ def validate_job(job,assets_root):
     require(sha(source)==meta.get("original_mp4_sha256"),
             "Source hash changed "+video_id)
     if job["mode"]=="CHATGPT_VALIDATED":
-        from chatgpt_semantic.handoff import check_response,verify_lineage
+        from framework.chatgpt_semantic.handoff import check_response,verify_lineage
         job_dir=within(job["semantic_job_dir"],
                        Path(__file__).resolve().parents[1]/".runtime")
         require((job_dir/"request.json").is_file() and
