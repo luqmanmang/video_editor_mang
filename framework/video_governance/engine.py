@@ -305,6 +305,8 @@ def validate(con, project, stage, path):
         require(isinstance(chosen,list) and bool(chosen)
                 and len(chosen)==len(set(chosen)),"PLAN_SKILL_SELECTION_MISSING_OR_DUPLICATE")
         require("video-edit-pipeline" in chosen,"MASTER_SKILL_REQUIRED")
+        require(len(set(chosen)-{"video-edit-pipeline"})>=1,
+                "NO_NATIVE_EDIT_SKILL_SELECTED")
         registry=next((a for a in assets(con,project)
                        if a["kind"]=="REFERENCE" and a["asset_id"]=="editor_skill_pack"),None)
         require(registry is not None,"PINNED_SKILL_REGISTRY_REQUIRED")
@@ -498,6 +500,26 @@ def add_variant(con,project,variant,body,hook):
         raise
 
 
+def trace_frame(con,project,render,frame):
+    render_row=con.execute("SELECT * FROM renders WHERE project_id=? AND render_id=?",
+                           (project,render)).fetchone()
+    require(render_row is not None and 0<=frame<render_row["frame_count"],
+            "TRACE_FRAME_NOT_IN_RENDER")
+    records=con.execute("""SELECT s.*,c.asset_id,a.path,a.sha256 as asset_sha256,
+                           b.role,b.story_version FROM spans s
+                           JOIN clips c ON c.project_id=s.project_id AND c.clip_id=s.clip_id
+                           JOIN assets a ON a.project_id=c.project_id AND a.asset_id=c.asset_id
+                           JOIN beats b ON b.project_id=s.project_id AND b.beat_id=s.beat_id
+                           WHERE s.project_id=? AND s.render_id=?
+                           AND s.output_first_frame<=? AND s.output_end_frame>?
+                           ORDER BY CASE WHEN s.layer='PRIMARY' THEN 0 ELSE 1 END""",
+                        (project,render,frame,frame)).fetchall()
+    require(records,"FRAME_LINEAGE_UNMAPPED")
+    return {"render_id":render,"render_sha256":render_row["sha256"],
+            "frame_number":frame,"fps":[render_row["fps_num"],render_row["fps_den"]],
+            "source_spans":[dict(r) for r in records]}
+
+
 def recover(con,project,stage,confirm):
     require(confirm is True,"WORKER_STOP_CONFIRMATION_REQUIRED")
     require(stage in STAGES,"UNKNOWN_STAGE")
@@ -542,6 +564,8 @@ def main(argv=None):
     p=sub.add_parser("status");p.add_argument("project")
     p=sub.add_parser("recover");p.add_argument("project");p.add_argument("stage")
     p.add_argument("--confirm-worker-stopped",action="store_true")
+    p=sub.add_parser("trace");p.add_argument("project");p.add_argument("render_id")
+    p.add_argument("frame",type=int)
     p=sub.add_parser("snapshot");p.add_argument("project");p.add_argument("out")
     args=ap.parse_args(argv)
     con=connection(args.db)
@@ -575,6 +599,8 @@ def main(argv=None):
         elif args.action=="recover":
             recover(con,args.project,args.stage,args.confirm_worker_stopped)
             result={"status":"FAILED_RETRY_ELIGIBLE","stage":args.stage}
+        elif args.action=="trace":
+            result=trace_frame(con,args.project,args.render_id,args.frame)
         elif args.action=="snapshot":
             result={"project":args.project,"audit":audit(con,args.project),
                     "assets":assets(con,args.project),

@@ -63,7 +63,7 @@ def check_selected(con,project,name,stage):
 def main(argv=None):
     ap=argparse.ArgumentParser()
     ap.add_argument("--registry",required=True)
-    p=ap.add_subparsers(dest="action",required=True)
+    sub=ap.add_subparsers(dest="action",required=True)
     p=sub.add_parser("list")
     p=sub.add_parser("show");p.add_argument("name")
     p=sub.add_parser("run")

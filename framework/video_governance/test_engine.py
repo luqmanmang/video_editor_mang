@@ -7,7 +7,7 @@ import unittest
 from unittest.mock import patch
 from framework.video_governance.engine import (
     GateError, STAGES, add_asset, add_clip, add_span, add_variant, audit,
-    connection, run_stage, sha, stage_row,
+    connection, run_stage, sha, stage_row, trace_frame, recover,
 )
 from framework.video_governance.router import SKILLS
 
@@ -168,7 +168,7 @@ class TestGovernance(unittest.TestCase):
         with self.assertRaisesRegex(GateError,"INCOMPLETE_FRAME_LINEAGE"):
             self.stage("DELIVERY",video)
 
-    def qa_to_review_only(self,video,story):
+    def qa_to_review_only(self,video,story,visibility="PRIVATE_REVIEW"):
         self.stage("TECH_QA",self.write("tech.json",{
             "render_sha256":sha(video),"status":"PASS",
             "checks":{x:"PASS" for x in ("decode","video","audio","captions")}
@@ -180,7 +180,7 @@ class TestGovernance(unittest.TestCase):
         }))
         self.stage("HUMAN_REVIEW",self.write("review.json",{
             "render_sha256":sha(video),"human_approved":True,
-            "reviewer":"verified reviewer","reviewed_at":"2026-11-23T12:00:00+08:00","visibility":"PRIVATE_REVIEW"
+            "reviewer":"verified reviewer","reviewed_at":"2026-11-23T12:00:00+08:00","visibility":visibility
         }))
 
     def test_no_human_approval_blocks(self):
@@ -227,6 +227,44 @@ class TestGovernance(unittest.TestCase):
                 "executed_skills":[]
             }))
         self.assertEqual("FAILED",stage_row(self.con,"p","EDIT")["status"])
+
+    def test_trace_returns_source_and_beat_for_a_frame(self):
+        video,_=self.establish_to_render()
+        rid=self.map_all(video)
+        value=trace_frame(self.con,"p",rid,7)
+        self.assertEqual("WANT",value["source_spans"][0]["role"])
+        self.assertEqual("source",value["source_spans"][0]["asset_id"])
+        with self.assertRaisesRegex(GateError,"TRACE_FRAME_NOT_IN_RENDER"):
+            trace_frame(self.con,"p",rid,20)
+
+    def test_manual_recovery_requires_worker_stopped(self):
+        self.con.execute("""INSERT INTO stages(project_id,stage,status)
+                            VALUES(?,?,?)""",("p","SOURCE","RUNNING"))
+        with self.assertRaisesRegex(GateError,"WORKER_STOP_CONFIRMATION_REQUIRED"):
+            recover(self.con,"p","SOURCE",False)
+        recover(self.con,"p","SOURCE",True)
+        self.assertEqual("FAILED",stage_row(self.con,"p","SOURCE")["status"])
+
+    def test_uncleared_footage_blocks_public_delivery(self):
+        video,story=self.establish_to_render()
+        self.map_all(video)
+        self.qa_to_review_only(video,story,visibility="PUBLIC")
+        with self.assertRaisesRegex(GateError,"PUBLIC_RIGHTS_NOT_CLEARED"):
+            self.stage("DELIVERY",video)
+
+    def test_skill_bridge_cli_parser(self):
+        from framework.video_governance.skill_bridge import main as bridge_main
+        import io
+        from contextlib import redirect_stdout
+        from unittest.mock import patch as patch_fn
+        manifest={"skills":[{"name":"video-edit-pipeline","owner":"MASTER",
+                             "status":"REGISTERED_NEEDS_SMOKE_TEST","lane":"orchestration"}]}
+        with patch_fn("framework.video_governance.skill_bridge.load_manifest",
+                      return_value=manifest):
+            out=io.StringIO()
+            with redirect_stdout(out):
+                self.assertEqual(0,bridge_main(["--registry","dummy","list"]))
+        self.assertIn("video-edit-pipeline",out.getvalue())
 
     def test_full_pipeline_and_stale_output(self):
         video,story=self.establish_to_render()
