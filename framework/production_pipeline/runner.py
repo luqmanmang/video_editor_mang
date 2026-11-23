@@ -155,11 +155,18 @@ def validate_job(job,assets_root):
     brolls=job.get("broll",[])
     require(isinstance(brolls,list),"B-roll selection must be an array")
     for item in brolls:
+        pip=(item.get("display_mode")=="PIP_KEEP_ORIGINAL_CAPTIONS" and
+             item.get("caption_visibility_verified") is True and
+             isinstance(item.get("source_caption_evidence"),list) and
+             len(item["source_caption_evidence"])>=1 and
+             all(Path(p).is_file() and
+                 within(p,Path(__file__).resolve().parents[1]/".runtime")
+                 for p in item["source_caption_evidence"]))
         require(item.get("license_status")=="VERIFIED" and
                 item.get("semantic_approved") is True and
                 item.get("visual_approved") is True and
-                item.get("caption_verified") is True,
-                "B-roll requires rights + semantic + visual + speech QA")
+                (item.get("caption_verified") is True or pip),
+                "B-roll requires rights, visual/semantic approval, and retained caption evidence")
         require(re.fullmatch(r"[0-9a-f]{64}",str(item.get("sha256",""))),
                 "B-roll requires original SHA-256")
         asset=within(assets_root/item["path"],assets_root)
@@ -168,6 +175,26 @@ def validate_job(job,assets_root):
                 type(item.get("duration_sec")) in (int,float) and
                 item["timeline_start_sec"]>=0 and item["duration_sec"]>0,
                 "B-roll timing missing")
+    if job["mode"]=="CHATGPT_VALIDATED":
+        from framework.chatgpt_semantic.handoff import read as semantic_read
+        source_assets={a["asset_id"]:a for a in req["source"].get("assets",[])}
+        segment_by_id={s["segment_id"]:s for s in req["source"]["segments"]}
+        for item in brolls:
+            key=item.get("asset_id")
+            require(key in source_assets and
+                    source_assets[key]["sha256"]==item["sha256"] and
+                    source_assets[key]["license_status"]=="VERIFIED",
+                    "B-roll not linked to exact approved semantic source asset")
+            matches=[beat for beat in decision["beats"]
+                     if beat["broll"].get("asset_id")==key]
+            require(matches,"Selected B-roll was not requested by validated ChatGPT beat")
+            start=item["timeline_start_sec"]
+            end=start+item["duration_sec"]
+            require(any(
+                start>=segment_by_id[beat["start_segment_id"]]["start_ms"]/1000-.05
+                and end<=segment_by_id[beat["end_segment_id"]]["end_ms"]/1000+.05
+                for beat in matches),
+                "B-roll overlay timing falls outside approved semantic beat")
     return {"key":key,"source":str(source),"source_sha256":sha(source),
             "transcript_sha256":sha(transcript),"manifest_sha256":sha(manifest),
             "source_duration_sec":duration,"cuts":cuts,
@@ -204,11 +231,14 @@ def ffmpeg_graph(job,work):
     for i,item in enumerate(job.get("broll",[])):
         stream=f"[{i+1}:v]"
         start=item["timeline_start_sec"]; end=start+item["duration_sec"]
+        pip=item.get("display_mode")=="PIP_KEEP_ORIGINAL_CAPTIONS"
+        width,height=(656,560) if pip else (720,1280)
         chain.append(f"{stream}trim=duration={item['duration_sec']:.3f},"
                      f"setpts=PTS-STARTPTS+{start:.3f}/TB,"
-                     "fps=30,scale=720:1280:force_original_aspect_ratio=increase,"
-                     f"crop=720:1280[br{i}];")
-        chain.append(f"{visual_ref}[br{i}]overlay=eof_action=pass:"
+                     f"fps=30,scale={width}:{height}:force_original_aspect_ratio=increase,"
+                     f"crop={width}:{height}[br{i}];")
+        x,y=(32,198) if pip else (0,0)
+        chain.append(f"{visual_ref}[br{i}]overlay=x={x}:y={y}:eof_action=pass:"
                      f"enable='between(t,{start:.3f},{end:.3f})'[bo{i}];")
         visual_ref=f"[bo{i}]"
     bottom=job["headline_card"]["bottom"]; top=110

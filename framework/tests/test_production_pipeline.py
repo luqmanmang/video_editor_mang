@@ -68,7 +68,7 @@ class ProductionTests(unittest.TestCase):
             "license_status":"VERIFIED","semantic_approved":False,
             "visual_approved":True,"caption_verified":True,
             "timeline_start_sec":0.4,"duration_sec":0.7}]
-        with self.assertRaisesRegex(ValueError,"rights \\+ semantic"):
+        with self.assertRaisesRegex(ValueError,"rights, visual/semantic approval"):
             validate_job(self.job,self.root)
         self.job["broll"][0]["semantic_approved"]=True
         self.assertEqual(len(validate_job(self.job,self.root)["brolls"]),1)
@@ -90,6 +90,15 @@ class ProductionTests(unittest.TestCase):
             self.assertIn("drawbox=",filtergraph)
             self.assertIn("loudnorm=I=-16",filtergraph)
             self.assertNotIn("loop=1",filtergraph)
+    def test_pip_broll_keeps_original_caption_strip(self):
+        self.job["broll"]=[{"display_mode":"PIP_KEEP_ORIGINAL_CAPTIONS",
+                             "timeline_start_sec":1.0,"duration_sec":1.0}]
+        with TemporaryDirectory() as tmp:
+            graph=ffmpeg_graph(self.job,Path(tmp))
+            self.assertIn("crop=656:560",graph)
+            self.assertIn("overlay=x=32:y=198",graph)
+            self.assertNotIn("crop=720:1280[br0]",graph)
+
     def test_local_video_processing_forbidden(self):
         if sys.platform.startswith("win"):
             with self.assertRaisesRegex(ValueError,"Codespace worker"):
