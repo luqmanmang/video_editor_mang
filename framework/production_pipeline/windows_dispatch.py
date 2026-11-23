@@ -7,6 +7,7 @@ QA files are written to the output folder.
 """
 from __future__ import annotations
 import argparse
+from datetime import datetime, timezone
 import hashlib
 import json
 import os
@@ -40,7 +41,7 @@ def remote_copy(cs,remote,local):
     require(code.returncode==0,"Codespace transfer failed: "+remote)
     require(Path(local).is_file() and Path(local).stat().st_size>0,
             "Codespace transfer produced no file")
-def deliver(cs,run_id,out_dir,expected_count=None):
+def deliver(cs,run_id,out_dir,expected_count=None,receipt_dir=None):
     require(bool(CODESPACE.fullmatch(cs)),"Invalid Codespace ID")
     require(bool(RUNID.fullmatch(run_id)),"Invalid run ID")
     folder=RUNS+"/"+run_id
@@ -90,6 +91,26 @@ def deliver(cs,run_id,out_dir,expected_count=None):
             print("GATE:"+key+"_transfer_sha256=PASS",flush=True)
             print("METRIC:"+key+"_delivered_bytes="+str(item["bytes"]),flush=True)
             print("PROGRESS:"+str(int(index*100/len(outputs))),flush=True)
+    if receipt_dir is not None:
+        # Small control-plane receipt only. No source, ASR, QA report or staging
+        # media is delivered to Windows.
+        receipt_dir=Path(receipt_dir).resolve()
+        receipt_dir.mkdir(parents=True,exist_ok=True)
+        receipt_path=receipt_dir/(run_id+".json")
+        receipt={"run_id":run_id,"status":"VERIFIED_SHA256_AT_DELIVERY",
+                 "verified_at":datetime.now(timezone.utc).isoformat(),
+                 "output_dir":str(out_dir),"count":len(results),
+                 "rights":"UNCLEARED","human_creative_review":"PENDING",
+                 "files":{key:{"filename":Path(path).name,
+                               "sha256":outputs[key]["sha256"],
+                               "bytes":outputs[key]["bytes"]}
+                          for key,path in results.items()}}
+        tmp=receipt_path.with_name(receipt_path.name+"."+uuid.uuid4().hex+".tmp")
+        try:
+            tmp.write_text(json.dumps(receipt,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+            os.replace(tmp,receipt_path)
+        finally: tmp.unlink(missing_ok=True)
+        print("GATE:dashboard_delivery_receipt=PASS",flush=True)
     print("GATE:verified_mp4_only_windows=PASS",flush=True)
     return {"status":"DELIVERED_VERIFIED_MP4_ONLY",
             "count":len(results),"local_video_paths":results}
@@ -127,6 +148,7 @@ def main():
     p.add_argument("--output-root",default=
                    r"D:\Thread Automation\Video_Clipping_Studio\outputs\review")
     args=p.parse_args()
+    control_receipts=Path(__file__).resolve().parents[3]/"dashboard_data"/"verified_codespace_deliveries"
     try:
         require(bool(args.remote_plan)^bool(args.deliver_run),
                 "Choose remote-plan or deliver-run")
@@ -137,11 +159,11 @@ def main():
             else:
                 result=deliver(args.codespace,run_id,
                                Path(args.output_root)/("codespace_"+run_id),
-                               args.expected_count)
+                               args.expected_count,control_receipts)
         else:
             result=deliver(args.codespace,args.deliver_run,
                            Path(args.output_root)/("codespace_"+args.deliver_run),
-                           args.expected_count)
+                           args.expected_count,control_receipts)
         print(json.dumps(result,indent=2,ensure_ascii=False),flush=True)
         return 0
     except (ValueError,OSError,RuntimeError,subprocess.TimeoutExpired,KeyError) as e:
