@@ -298,6 +298,38 @@ def validate(con, project, stage, path):
             require(proof.is_file() and proof.stat().st_size>0 and
                     sha(proof)==entry.get("proof_sha256"),
                     "EDIT_SKILL_PROOF_MISSING_OR_CHANGED:"+str(entry.get("name")))
+        if info.get("edit_tier")=="FULL":
+            evidence=obj.get("creative_evidence",{})
+            required={"NEW_BROLL","MOTION_GRAPHICS","SEMANTIC_CARDS","AUDIO_MASTER"}
+            require(set(info.get("required_capabilities",[]))==required,
+                    "FULL_EDIT_CAPABILITY_CONTRACT_INCOMPLETE")
+            broll_ids=evidence.get("new_broll_asset_ids",[])
+            require(isinstance(broll_ids,list) and len(set(broll_ids))>=2,
+                    "FULL_EDIT_BROLL_COUNT_BELOW_TWO")
+            registry={a["asset_id"]:a for a in assets(con,project)}
+            for aid in broll_ids:
+                row=registry.get(aid)
+                require(row and row["kind"]=="BROLL" and row["rights"]=="VERIFIED"
+                        and Path(row["path"]).is_file()
+                        and sha(row["path"])==row["sha256"],
+                        "FULL_EDIT_BROLL_NOT_VERIFIED:"+str(aid))
+            for pth,hash_key in (
+                ("composition_html_path","composition_html_sha256"),
+                ("audio_master_path","audio_master_sha256"),
+                ("storyboard_path","storyboard_sha256")):
+                f=Path(evidence.get(pth,""))
+                require(f.is_file() and sha(f)==evidence.get(hash_key),
+                        "FULL_EDIT_EVIDENCE_MISSING_OR_CHANGED:"+pth)
+            storyboard=read_json(evidence["storyboard_path"])
+            cards=storyboard.get("cards",[])
+            require(len(cards)>=3 and len(evidence.get("motion_event_ids",[]))>=3
+                    and len(set(evidence["motion_event_ids"]))>=3,
+                    "FULL_EDIT_MOTION_OR_CARDS_MISSING")
+            markup=Path(evidence["composition_html_path"]).read_text()
+            require("window.__timelines" in markup
+                    and all(name in markup for name in evidence["motion_event_ids"])
+                    and "data-track-index" in markup,
+                    "FULL_EDIT_MOTION_COMPOSITION_MISSING")
     if stage=="EDIT_PLAN":
         story = stage_row(con,project,"STORY_LOCK")
         require(obj.get("story_sha256")==story["artifact_sha"],"PLAN_STALE_STORY")
@@ -324,6 +356,12 @@ def validate(con, project, stage, path):
         beat_ids = {x["beat_id"] for x in read_json(story["artifact_path"])["beats"]}
         require(isinstance(obj.get("beat_ids"),list) and
                 set(obj["beat_ids"])==beat_ids,"PLAN_BEAT_COVERAGE_MISMATCH")
+        if obj.get("edit_tier")=="FULL":
+            require(set(obj.get("required_capabilities",[]))=={
+                "NEW_BROLL","MOTION_GRAPHICS","SEMANTIC_CARDS","AUDIO_MASTER"},
+                "FULL_EDIT_CAPABILITIES_NOT_PLANNED")
+            require({"reel-recut","branded-ad-edit"}.issubset(set(chosen)),
+                    "FULL_EDIT_NATIVE_SKILLS_NOT_SELECTED")
     if stage in {"TECH_QA","STORY_QA","HUMAN_REVIEW"}:
         require(obj.get("render_sha256")==render_sha(con,project),
                 "QA_OR_REVIEW_STALE_RENDER")
@@ -343,6 +381,20 @@ def validate(con, project, stage, path):
                 and "technical" in native.get("coverage",{}).get("completed",[])
                 and not native.get("coverage",{}).get("missingRequired",[]),
                 "TECH_QA_NATIVE_REPORT_NOT_PASS")
+        plan=read_json(stage_row(con,project,"EDIT_PLAN")["artifact_path"])
+        if plan.get("edit_tier")=="FULL":
+            creative_path=Path(obj.get("creative_qa_report_path",""))
+            require(creative_path.is_file() and
+                    sha(creative_path)==obj.get("creative_qa_report_sha256"),
+                    "FULL_EDIT_CREATIVE_QA_EVIDENCE_MISSING")
+            creative=read_json(creative_path)
+            require(creative.get("render_sha256")==render_sha(con,project)
+                    and creative.get("status")=="PASS"
+                    and creative.get("broll_visible") is True
+                    and creative.get("motion_visible") is True
+                    and creative.get("audio_master_pass") is True
+                    and len(creative.get("verified_frame_snapshots",[]))>=3,
+                    "FULL_EDIT_CREATIVE_QA_NOT_PASSED")
     if stage=="STORY_QA":
         require(obj.get("story_sha256")==stage_row(con,project,"STORY_LOCK")["artifact_sha"],
                 "STORY_QA_STALE_STORY")

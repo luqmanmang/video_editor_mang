@@ -224,6 +224,40 @@ class TestGovernance(unittest.TestCase):
             add_span(self.con,"p",render_id,"second","WANT","clip_1","PRIMARY",
                      200,400,4,8,"keep","v1")
 
+    def test_full_edit_plan_requires_all_capabilities(self):
+        self.stage("SOURCE",self.write("source_receipt.json",{"ok":True}))
+        story=self.write("story.json",story_json())
+        self.stage("STORY_LOCK",story)
+        with self.assertRaisesRegex(GateError,"FULL_EDIT_CAPABILITIES_NOT_PLANNED"):
+            self.stage("EDIT_PLAN",self.write("plan.json",{
+                "story_sha256":sha(story),"edit_tier":"FULL",
+                "selected_skills":["video-edit-pipeline","reel-recut","branded-ad-edit"],
+                "beat_ids":["HOOK","WANT","TAPI","SO","PAYOFF"],
+                "required_capabilities":["NEW_BROLL","MOTION_GRAPHICS"]
+            }))
+
+    def test_full_edit_without_broll_or_motion_is_refused(self):
+        self.stage("SOURCE",self.write("source_receipt.json",{"ok":True}))
+        story=self.write("story.json",story_json())
+        self.stage("STORY_LOCK",story)
+        plan=self.write("plan.json",{
+            "story_sha256":sha(story),"edit_tier":"FULL",
+            "selected_skills":["video-edit-pipeline","reel-recut","branded-ad-edit"],
+            "beat_ids":["HOOK","WANT","TAPI","SO","PAYOFF"],
+            "required_capabilities":["NEW_BROLL","MOTION_GRAPHICS",
+                                     "SEMANTIC_CARDS","AUDIO_MASTER"]
+        })
+        self.stage("EDIT_PLAN",plan)
+        proof=self.write("native_proof.json",{"fake":"placeholder"})
+        with self.assertRaisesRegex(GateError,"FULL_EDIT_BROLL_COUNT_BELOW_TWO"):
+            self.stage("EDIT",self.write("edit_receipt.json",{
+                "plan_sha256":sha(plan),"beat_ids":["HOOK","WANT","TAPI","SO","PAYOFF"],
+                "executed_skills":[{"name":n,"proof_path":str(proof),
+                                    "proof_sha256":sha(proof)}
+                                   for n in ("reel-recut","branded-ad-edit")],
+                "creative_evidence":{}
+            }))
+
     def test_selected_native_skill_cannot_be_skipped(self):
         self.stage("SOURCE",self.write("source_receipt.json",{"ok":True}))
         story=self.write("story.json",story_json())

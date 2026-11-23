@@ -41,6 +41,28 @@ all critical story beats mapped, no overlaps/gaps.
 
 These are strict *structure* gates; semantic truth is NOT proved by a JSON PASS.
 
+## FULL edit tier (new anti-silent-skip contract)
+
+Set EDIT_PLAN.edit_tier = "FULL" with required_capabilities exactly:
+NEW_BROLL, MOTION_GRAPHICS, SEMANTIC_CARDS, AUDIO_MASTER.
+Also select video-edit-pipeline, reel-recut and branded-ad-edit.
+
+EDIT receipt must include creative_evidence:
+- new_broll_asset_ids: at least two distinct registered assets of kind BROLL with verified license and content hash.
+- composition_html_path + composition_html_sha256 (actual original upstream HyperFrames render composition).
+- storyboard_path + storyboard_sha256; at least three visual cards.
+- motion_event_ids (at least three distinct actual selectors present in HTML/GSAP timeline).
+- audio_master_path + audio_master_sha256 (real audio-processed input file).
+- native executed_skills proof for reel-recut and branded-ad-edit.
+
+TECH_QA for FULL tier additionally requires creative_qa_report_path and
+creative_qa_report_sha256 tied to the current render hash; requires real
+broll_visible, motion_visible, audio_master_pass and three frame snapshots.
+This is a STRUCTURAL evidence gate, not machine proof that broll is aesthetically
+relevant. Real visual and story review remain mandatory. No silent downgrade from
+FULL to BASIC is accepted after EDIT_PLAN PASS. A pilot may still be shown as
+PRIVATE_PREVIEW while TECH_QA/STORY_QA/HUMAN_REVIEW/DELIVERY are PENDING.
+
 ## Compact lineage
 Asset ID + SHA-256 + event_time + ingested_at + rights.
 Clip FK → source asset; source milliseconds.
