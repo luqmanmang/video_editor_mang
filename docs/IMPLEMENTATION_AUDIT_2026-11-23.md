@@ -35,8 +35,8 @@ Date: 2026-11-23 (Malaysia). STATUS: STAGING / NO PUBLIC RELEASE APPROVAL.
 - Original upstream offline + media integration: all suites passed;
   optional live transcription test skipped.
 - Existing Video Studio framework regression: 51 tests passed.
-- New Windows/Codespace governance tests: 16 passed before the final
-  native-QA report gate was added; rerun after this patch.
+- New Windows/Codespace governance tests: 17/17 PASS after native-QA report
+  binding and skill-bridge CLI/parser regression were added.
 - Native FFmpeg + original reel-recut smoke on a synthetic 2-second MP4:
   SOURCE through RENDER passed; 60 frames at 30fps.
   SHA-256: 40d587bb273b4da623865d7028a58e4d3fd6a19e414665e70cc227712c930d59
@@ -73,10 +73,18 @@ I. **Native QA policy**: PASS_WITH_WARNINGS blocks stringent production TECH_QA;
    only with user-approved QA standards, never auto-approve.
 J. **Source version**: original upstream skills may change; refresh registry
    explicitly, review differences and rerun regression before upgrading.
-K. **Production control**: direct manual commands outside the governance CLI
-   can still create files; they must never qualify as a released final artifact.
-L. **No unattended ChatGPT**: this runs through interactive ChatGPT + RDC,
+K. **Multiple project states**: existing stage_runtime.py, upstream project.json,
+   and the new SQLite control plane coexist. A single canonical reconciler
+   is NOT yet installed; native upstream receipts need authoritative import.
+L. **Multi-skill workflow evidence**: a single native reel-recut lane passes
+   through skill_bridge; arbitrary combinations of 21 workflows are not
+   end-to-end orchestrated/verified. A manual receipt could still be forged
+   if a caller bypasses skill_bridge; direct stage runners must be restricted
+   or reconciled before any production guarantee of no silent step skip.
+M. **No unattended ChatGPT**: this runs through interactive ChatGPT + RDC,
    not a ChatGPT worker that operates after the chat ends.
+N. **Production control**: manual commands outside governance can create files,
+   but must never qualify as a released artifact.
 
 ## Release decision
 STAGING ACCEPTED for controlled pilot; PRODUCTION NO_GO.
