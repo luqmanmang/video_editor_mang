@@ -26,7 +26,7 @@ CANVAS=(720,1280,30)
 FONT=Path("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
 LOCK=threading.RLock()
 RUN_ROOT=Path(__file__).resolve().parents[1]/".runtime"/"production_runs"
-INPUT_ROOT=Path(__file__).resolve().parents[1]/".runtime"/"production_assets"
+INPUT_ROOT=Path(__file__).resolve().parents[1]/".runtime"/"production_assets"/"kauthar"
 
 def require(ok,reason):
     if not ok: raise ValueError(reason)
