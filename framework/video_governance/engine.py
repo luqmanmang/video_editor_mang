@@ -264,7 +264,7 @@ def validate(con, project, stage, path):
         covered={x["beat_id"] for x in rows}
         require(required and required.issubset(covered),"STORY_BEAT_FRAME_LINEAGE_MISSING")
         return None
-    if stage not in {"STORY_LOCK","EDIT_PLAN","TECH_QA","STORY_QA","HUMAN_REVIEW"}:
+    if stage not in {"STORY_LOCK","EDIT_PLAN","EDIT","TECH_QA","STORY_QA","HUMAN_REVIEW"}:
         return None
     obj = read_json(path)
     require(isinstance(obj,dict),"RECEIPT_NOT_OBJECT")
@@ -282,6 +282,22 @@ def validate(con, project, stage, path):
             ids.add(beat["beat_id"])
         require({"HOOK","TAPI","SO","PAYOFF"}.issubset({b["role"] for b in beats}),
                 "STORY_MISSING_CRITICAL_ROLES")
+    if stage=="EDIT":
+        plan=stage_row(con,project,"EDIT_PLAN")
+        info=read_json(plan["artifact_path"])
+        require(obj.get("plan_sha256")==plan["artifact_sha"],"EDIT_PLAN_HASH_MISMATCH")
+        require(set(obj.get("beat_ids",[]))==set(info["beat_ids"]),
+                "EDIT_STORY_BEAT_MISSING")
+        executed=obj.get("executed_skills",[])
+        required_skills=set(info["selected_skills"])-{"video-edit-pipeline"}
+        require(isinstance(executed,list) and
+                {entry.get("name") for entry in executed}==required_skills,
+                "EDIT_SKILL_EXECUTION_COVERAGE_MISSING")
+        for entry in executed:
+            proof=Path(entry.get("proof_path",""))
+            require(proof.is_file() and proof.stat().st_size>0 and
+                    sha(proof)==entry.get("proof_sha256"),
+                    "EDIT_SKILL_PROOF_MISSING_OR_CHANGED:"+str(entry.get("name")))
     if stage=="EDIT_PLAN":
         story = stage_row(con,project,"STORY_LOCK")
         require(obj.get("story_sha256")==story["artifact_sha"],"PLAN_STALE_STORY")

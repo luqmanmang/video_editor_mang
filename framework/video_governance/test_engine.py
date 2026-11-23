@@ -64,11 +64,17 @@ class TestGovernance(unittest.TestCase):
         self.stage("SOURCE",self.write("source_receipt.json",{"assets":["source"]}))
         story=self.write("story.json",story_json())
         self.stage("STORY_LOCK",story)
-        self.stage("EDIT_PLAN",self.write("plan.json",{
+        plan=self.write("plan.json",{
             "story_sha256":sha(story),"selected_skills":["video-edit-pipeline","reel-recut"],
             "beat_ids":["HOOK","WANT","TAPI","SO","PAYOFF"]
+        })
+        self.stage("EDIT_PLAN",plan)
+        native_proof=self.write("recut_proof.json",{"fixture":"synthetic native output"})
+        self.stage("EDIT",self.write("edit.json",{
+            "plan_sha256":sha(plan),"beat_ids":["HOOK","WANT","TAPI","SO","PAYOFF"],
+            "executed_skills":[{"name":"reel-recut","proof_path":str(native_proof),
+                                "proof_sha256":sha(native_proof)}]
         }))
-        self.stage("EDIT",self.write("edit.json",{"edit_spec":"synthetic"}))
         video=self.root/"render.mp4"
         video.write_bytes(b"synthetic render fixture")
         with patch("framework.video_governance.engine.inspect_video",
@@ -203,6 +209,24 @@ class TestGovernance(unittest.TestCase):
         with self.assertRaisesRegex(GateError,"PRIMARY_FRAME_OVERLAP"):
             add_span(self.con,"p",render_id,"second","WANT","clip_1","PRIMARY",
                      200,400,4,8,"keep","v1")
+
+    def test_selected_native_skill_cannot_be_skipped(self):
+        self.stage("SOURCE",self.write("source_receipt.json",{"ok":True}))
+        story=self.write("story.json",story_json())
+        self.stage("STORY_LOCK",story)
+        plan=self.write("plan.json",{
+            "story_sha256":sha(story),
+            "selected_skills":["video-edit-pipeline","reel-recut"],
+            "beat_ids":["HOOK","WANT","TAPI","SO","PAYOFF"]
+        })
+        self.stage("EDIT_PLAN",plan)
+        with self.assertRaisesRegex(GateError,"EDIT_SKILL_EXECUTION_COVERAGE_MISSING"):
+            self.stage("EDIT",self.write("edit.json",{
+                "plan_sha256":sha(plan),
+                "beat_ids":["HOOK","WANT","TAPI","SO","PAYOFF"],
+                "executed_skills":[]
+            }))
+        self.assertEqual("FAILED",stage_row(self.con,"p","EDIT")["status"])
 
     def test_full_pipeline_and_stale_output(self):
         video,story=self.establish_to_render()

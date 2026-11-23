@@ -22,7 +22,12 @@ SOURCE: registered source asset(s).
 STORY_LOCK: story_map fields hook_promise, viewer_prediction, want, tapi, so,
 payoff and a beats array (beat_id + story role).
 EDIT_PLAN: story_sha256, selected_skills and beat_ids covering the approved story.
-EDIT: original edit decision spec or native cut manifest.
+EDIT: JSON receipt with plan_sha256, beat_ids (all approved beats), and
+executed_skills covering every non-master selected skill. Each executed_skills
+entry includes name, proof_path and proof_sha256 of the real native output.
+This prevents silently selecting a skill and then omitting its execution.
+The master video-edit-pipeline skill is an instruction-level orchestrator, not an
+executable process; it is required in EDIT_PLAN and verified via the pinned registry.
 RENDER: actual FFprobe-readable video containing video + audio.
 TECH_QA: render_sha256, status PASS and checks decode/video/audio/captions PASS.
 STORY_QA: story_sha256, render_sha256, status PASS and checks hook_payoff,
