@@ -20,6 +20,9 @@ from urllib.error import URLError
 from .runner import INPUT_ROOT,require,atomic,sha,probe
 
 CANDIDATES=[
+ {"asset_id":"mixkit_yellow_lemon_3709","id":"3709",
+  "page":"https://mixkit.co/free-stock-video/yellow-lemon-slices-in-detail-3709/",
+  "hypothesis":"Yellow lemon illustration relevant to purchasing citrus ingredients, not evidence of Mixue suppliers"},
  {"asset_id":"mixkit_lemon_42948","id":"42948",
   "page":"https://mixkit.co/free-stock-video/lemons-rotating-in-a-cluster-at-a-leisurely-pace-42948/",
   "hypothesis":"Illustration of lemon ingredient; NOT proof of Mixue procurement"},
