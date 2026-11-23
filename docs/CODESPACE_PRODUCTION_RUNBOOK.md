@@ -83,3 +83,24 @@ bundles/staging scripts. Keep original research footage, existing Windows review
 MP4s and QA evidence until a user-approved retention/backup plan exists.
 Do not delete source files from the public repo (there should be none).
 Do not allow dashboard local FFmpeg/remotion render fallback.
+
+
+## Git-tracked Windows dashboard (control plane, not an editor)
+
+- Canonical dashboard source: repo/tools/studio_dashboard.py.
+- Windows studio-root studio_dashboard.py is a 7-line launcher importing
+  repo.tools.studio_dashboard. If rebuilding a new Windows machine, restore
+  the launcher and the Git checkout; no need to copy an unversioned 600-line
+  dashboard manually.
+- The dashboard writes small event/checkpoint metadata to dashboard_data,
+  and verified delivery receipts to
+  dashboard_data/verified_codespace_deliveries/cs_<hash>.json.
+  These are NOT source videos, audio, transcripts or rendering intermediates.
+- The user-visible existing-evidence panel prioritizes the newest verified
+  Codespace delivery receipt, preserving creative_review=PENDING and
+  rights=UNCLEARED. It does not claim human approval.
+- Local video processing commands and the old scratch batch renderer are
+  rejected. An authorized Windows controller may use the GitHub CLI to run
+  Codespace jobs and copy validated MP4s to the review directory.
+- Browser heartbeat/claim ensures jobs reuse the existing local dashboard tab.
+  Regression script: repo/tools/test_browser_lifecycle_windows.py.
