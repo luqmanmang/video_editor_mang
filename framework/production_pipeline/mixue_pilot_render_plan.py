@@ -15,7 +15,7 @@ ROOT=RUN_ROOT/("semantic_"+ID)
 PILOT=ROOT/"pilot_stock_v1"
 JOB="sem_a34e26d4fdcf1aa172a7"
 FOLDER=PILOT/"runtime"/"jobs"/JOB
-PLAN=INPUT_ROOT/"mixue_semantic_v1_private_plan.json"
+PLAN=INPUT_ROOT/"mixue_semantic_v2_private_plan.json"
 
 def main():
     require(sys.platform.startswith("linux") and
@@ -61,17 +61,17 @@ def main():
             "editorial_disclaimer":"Illustrative stock, not Mixue source footage; original baked subtitle remains visible below overlay",
             "timeline_start_sec":start,"duration_sec":round(end-start,3),
         })
-    plan={"schema_version":"1.0","batch_id":"mixue_semantic_pilot_v1",
+    plan={"schema_version":"1.0","batch_id":"mixue_semantic_pilot_v2",
           "render_workers":1,
           "jobs":[{
-            "key":"mixue_semantic_v1","video_id":ID,
+            "key":"mixue_semantic_v2","video_id":ID,
             "output":{"width":720,"height":1280,"fps":30},
             "mode":"CHATGPT_VALIDATED",
             "semantic_job_dir":str(FOLDER),
             "source_rights":"UNCLEARED_PRIVATE_ONLY",
             "cut_ranges_seconds":[[0,duration]],
             "headline_lines":["MIXUE JUAL MURAH,","UNTUNG DARI MANA?"],
-            "headline_card":{"bottom":304},
+            "headline_card":{"bottom":348},
             "headline_seconds":7.9,
             "motion":"STATIC",
             "broll":broll,
